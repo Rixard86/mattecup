@@ -13,8 +13,8 @@ function fxText(f){
   const p = [];
   if (f.atk) p.push(`alla anfall +${f.atk}`);
   if (f.mur) p.push(`mur +${f.mur}`);
-  if (f.opp) p.push(`deras anfall −${f.opp}`);
-  if (f.guard) p.push(`deras försvar −${f.guard}`);
+  const theirs = [f.opp && `anfall −${f.opp}`, f.guard && `försvar −${f.guard}`].filter(Boolean);
+  if (theirs.length) p.push(`deras ${theirs.join(', ')}`);
   if (f.energy) p.push(`energi +${f.energy}`);
   return p.join(', ');
 }

@@ -7,12 +7,13 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 ## Viktiga regler
 
 - **All text i spelet är på svenska.** Kommentarer i koden är också på svenska.
-- **Inget byggsteg och inga beroenden i spelet.** Det är rena statiska filer. Inga CDN:er: typsnitten (Bungee, Nunito) ligger i `fonts/`. Allt utom onlinematchen ska fungera offline.
+- **Inget byggsteg och inga beroenden i spelet.** Det är rena statiska filer. Inga CDN:er: typsnitten (Bungee, Nunito) ligger i `fonts/`, både latin och latin-ext (för Š, ć, ş i spelar- och lagnamn). Allt utom onlinematchen ska fungera offline.
 - **Ändra inte iPad-utseendet** när du anpassar för mobil. Mobilregler finns bara i två mediefrågor i slutet av CSS:en:
   - `(max-width:540px)` för telefon på höjden.
   - `(max-height:500px) and (orientation:landscape)` för telefon på bredden.
 
   Den minsta iPaden är 744 × 744 px eller större, så ingen av dem slår till där.
+  Korten har `overflow:clip` (inte `hidden`), så att de växer på höjden när texten inte ryms, och sällsynthetsetiketten `.rtag` ligger i flödet. `.rtag.legend` krockar med planens `.legend`, därför nollställer `.rtag` `inset` och `max-width`. `tests/card-text.js` kontrollerar alla kort på mobil och iPad.
 - **Bungee-rubriker:** Å, Ä och Ö når 0,97 em över baslinjen. Använd radhöjd minst 1,22 och marginal under `.eyebrow`, annars krockar texten.
 - **Namn från kompismatchen visas för andra spelare.** Kör dem genom `vsClean()` och `esc()`. Servern sanerar också.
 - **Spellogik ska valideras med simulering** innan den levereras (se Tester). Ange tydligt vad som behöver provas på riktig iPad.
