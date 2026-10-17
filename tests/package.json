@@ -1,0 +1,15 @@
+{
+  "name": "united-mattecup-tests",
+  "private": true,
+  "description": "Tester och simuleringar för United Mattecup. Kör npm install och npx playwright install chromium först.",
+  "scripts": {
+    "dev": "node devserver.js",
+    "test": "node sim-curriculum.js && node ui-all-sections.js && node super-attack.js && node mobile-taps.js && node vs-two-players.js",
+    "test:cup": "node cup-full.js",
+    "sim:balance": "node sim-balance.js",
+    "sim:vs": "node sim-vs.js"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

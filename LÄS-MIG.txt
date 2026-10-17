@@ -1,0 +1,77 @@
+UNITED MATTECUP – installation på Synology Web Station
+=======================================================
+
+1. Packa upp zip-filen. Du får mappen "mattecup" med index.html,
+   apple-touch-icon.png och mappen fonts.
+2. Kopiera hela mappen "mattecup" till delade mappen "web" på NAS:en
+   (File Station > web). Resultat: web/mattecup/index.html
+3. Web Station måste vara igång (standardtjänsten som serverar mappen "web").
+4. Öppna på iPaden i Safari:  http://<NAS-ens-IP>/mattecup/
+5. Tips: Dela-knappen > "Lägg till på hemskärmen" – då startar spelet i helskärm
+   med egen ikon.
+
+KLUBBMÄRKE
+Lägg en bild med namnet  logo.png  i samma mapp som index.html.
+Den visas då på startsidan och på resultattavlan. Utan bilden visas ett enkelt
+"MU"-märke. En kvadratisk PNG med genomskinlig bakgrund ser bäst ut.
+
+LIGOR OCH NIVÅER
+- Premier League   = Matematik Alfa  (Lätt A 1.1–2.6, Medel A 3.1–4.5, Svår A 5.1–6.4)
+- Champions League = Matematik Beta  (Lätt B 1.1–2.6, Medel B 3.1–4.5, Svår B 5.1–6.4)
+- Special League   = Matematik Gamma (Lätt G 1.1–2.7, Medel G 3.1–3.7, Svår G 4.1–4.6)
+  Alla 16 lag i Allsvenskan + 32 klubbar från hela världen. Varje cup får ett svenskt
+  lag (15 % chans för två). Ändra chansen med SWE_TWO_CHANCE i teams.js.
+Lätt är öppen i alla ligor. Vinn cupen på en nivå för att låsa upp nästa.
+
+FILERNA
+- index.html     själva spelet (match, kort, straffar, skärmar)
+- curriculum.js  alla uppgifter, ett avsnitt per film
+- teams.js       alla lag i varje liga, sorterade från svagast till starkast,
+                 med startelva och tröjfärger. Ändra eller lägg till lag fritt –
+                 varje cup lottar ett lag ur varje sjättedel av listan.
+- api/vs.js      servern för onlinematch (bara för Vercel, se ovan)
+- online-config.js  adressen till onlineservern (tom = samma adress som spelet)
+- I index.html överst: CARDS (Uniteds spelarkort) och LINEUP (Uniteds elva).
+Trupperna är från oktober 2026.
+
+UTMANA EN KOMPIS (ONLINEMATCH) – kräver Vercel
+Onlinematchen behöver en liten server som skickar dragen mellan spelarna.
+Den ligger i mappen api (filen api/vs.js) och körs gratis på Vercel med
+Upstash Redis som minne. Synology kan inte köra den, men spelet på Synology
+kan använda servern på Vercel.
+
+1. Lägg mappen "mattecup" i ett GitHub-repo, eller använd Vercel CLI:
+     cd mattecup
+     npx vercel            (logga in, välj "Other" som framework, inga byggsteg)
+2. Vercel > projektet > Storage (eller Marketplace) > Upstash for Redis >
+   skapa en gratis databas och koppla den till projektet.
+   Då får projektet KV_REST_API_URL och KV_REST_API_TOKEN automatiskt.
+   (UPSTASH_REDIS_REST_URL och UPSTASH_REDIS_REST_TOKEN fungerar också.)
+3. Publicera igen så att variablerna kommer med:   npx vercel --prod
+4. Spela på https://<ditt-projekt>.vercel.app – både du och kompisen.
+
+Vill du även spela onlinematcher från Synology-kopian:
+öppna online-config.js på NAS:en och skriv in Vercel-adressen, till exempel
+  window.VS_API = 'https://<ditt-projekt>.vercel.app/api/vs';
+
+Så går en match till:
+- En spelare trycker "Utmana en kompis" > "Skapa match" och får en kod
+  på fyra tecken. Kompisen trycker "Gå med" och skriver koden.
+- Spegeldraft: båda får exakt samma val i fyra omgångar (två med vanliga
+  kort, en med sällsynta och sist Stjärnvalet bland de episka). Varje omgång
+  har ett anfallskort, ett försvars- eller kombikort och ett kort som ger
+  något extra. Valen räknas fram ur matchkoden, så de blir alltid lika.
+  Före avsparken visas båda trupperna. Sedan sex turer som spelas samtidigt.
+  Varje spelare räknar på sin egen liga och nivå.
+- Varje tur: anfallskort samlar anfall, försvarskort bygger mur. När båda
+  tryckt "Avsluta tur" möts korten: anfall minus kompisens mur fyller
+  målchansen. 12 = mål. Lika efter sex turer ger straffar.
+- Laddar man om sidan eller tappar nätet går det att fortsätta från menyn.
+  Matcher raderas från servern efter 3 timmar. Inga personuppgifter sparas,
+  bara förnamnet som visas för kompisen.
+
+BRA ATT VETA
+- Allt utom onlinematchen fungerar utan internet. Typsnitten ligger i mappen fonts.
+- Framsteg och statistik sparas i webbläsaren på just den iPaden.
+  Rensar man Safaris webbplatsdata nollställs det.
+- Hörs inget ljud? Kolla att iPaden inte står på ljudlös.

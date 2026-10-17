@@ -1,0 +1,5 @@
+tests/node_modules/
+tests/out/
+.vercel/
+*.zip
+.DS_Store
