@@ -29,6 +29,8 @@ FILERNA
 - teams.js       alla lag i varje liga, sorterade från svagast till starkast,
                  med startelva och tröjfärger. Ändra eller lägg till lag fritt –
                  varje cup lottar ett lag ur varje sjättedel av listan.
+- samling.js     biblioteket (kort, motståndarlag, utrustning) och troféerna
+- effekter.js    utrustnings- och väderkortens tillfälliga bonusar och vädret på planen
 - api/vs.js      servern för onlinematch (bara för Vercel, se ovan)
 - online-config.js  adressen till onlineservern (tom = samma adress som spelet)
 - I index.html överst: CARDS (Uniteds spelarkort) och LINEUP (Uniteds elva).

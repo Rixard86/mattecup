@@ -439,8 +439,11 @@ const ALFA = [
   { code:'A1.1', name:'Siffror och tal', gen(d){
     const n = [2, 3, 4, 5][d - 1];
     if (Math.random() < .55){
-      const N = rnd(Math.pow(10, n - 1), Math.pow(10, n) - 1), ds = digitsOf(N, n), cand = [];
-      ds.forEach((v, i) => { if (v > 0) cand.push(i); });
+      let N, ds, cand;
+      do {
+        N = rnd(Math.pow(10, n - 1), Math.pow(10, n) - 1); ds = digitsOf(N, n); cand = [];
+        ds.forEach((v, i) => { if (v > 0 && ds.indexOf(v) === ds.lastIndexOf(v)) cand.push(i); });
+      } while (!cand.length);
       const p = pick(cand), v = ds[p] * Math.pow(10, p);
       return NUM(`Vilket värde har siffran <b>${ds[p]}</b> i talet <b>${fmt(N)}</b>?`, v,
         { steps:[`Räkna platserna från höger: ental, tiotal, hundratal…`, `Siffran ${ds[p]} står på ${POS[p]}splatsen.`, `${ds[p]} ${POS[p]} = ${fmt(v)}.`], hint:'Räkna platserna från höger: ental, tiotal, hundratal, tusental.' });

@@ -184,6 +184,17 @@ p{margin:0}
 .status{display:flex;gap:8px;flex-wrap:wrap;min-height:28px}
 .tag{background:rgba(0,0,0,.5);border-radius:999px;padding:4px 12px;font-size:14px}
 .tag.hot{background:var(--gold);color:var(--ink)}
+.tag.fx{background:rgba(14,116,144,.75);box-shadow:inset 0 0 0 2px rgba(103,232,249,.5)}
+.weather{position:absolute;inset:0;z-index:2;pointer-events:none}
+.w-rain{background:repeating-linear-gradient(105deg,transparent 0 16px,rgba(186,230,253,.22) 16px 18px);background-size:120px 120px;animation:rainfall .45s linear infinite}
+@keyframes rainfall{to{background-position:-32px 120px}}
+.w-wind{background:repeating-linear-gradient(90deg,transparent 0 60px,rgba(255,255,255,.16) 60px 110px,transparent 110px 170px);background-size:340px 100%;
+  -webkit-mask:repeating-linear-gradient(0deg,#000 0 2px,transparent 2px 26px);mask:repeating-linear-gradient(0deg,#000 0 2px,transparent 2px 26px);animation:windblow .8s linear infinite}
+@keyframes windblow{to{background-position:340px 0}}
+.w-fog{background:radial-gradient(ellipse at 30% 40%,rgba(255,255,255,.3),transparent 60%),radial-gradient(ellipse at 75% 65%,rgba(255,255,255,.26),transparent 55%);animation:fogdrift 7s ease-in-out infinite alternate}
+@keyframes fogdrift{to{transform:translateX(6%)}}
+.w-storm{background:rgba(30,27,75,.32);animation:lightning 3.2s linear infinite}
+@keyframes lightning{0%,88%,94%,100%{box-shadow:none;background:rgba(30,27,75,.32)}90%,96%{background:rgba(255,255,255,.35)}}
 .handbar{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"energy hand turn";align-items:end;gap:12px;padding-bottom:6px}
 .energy{grid-area:energy;display:flex;flex-direction:column;align-items:center;gap:6px}
 .orbs{display:flex;flex-direction:column-reverse;gap:6px}
@@ -215,6 +226,12 @@ p{margin:0}
 .card .art{width:52%;margin:-18px auto 0;aspect-ratio:1;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--kc),0 4px 8px rgba(0,0,0,.25);display:grid;place-items:center;color:var(--red);position:relative}
 .card.k-def .art{color:#1c1c1c}
 .card.k-skill .art{color:#b08f00}
+.card.k-gear{--kc:#38bdf8}
+.card.k-gear .top{background:#0c4a6e;color:#e0f2fe}
+.card.k-gear .art{color:#0369a1}
+.card.k-env{--kc:#34d399}
+.card.k-env .top{background:#064e3b;color:#d1fae5}
+.card.k-env .art{color:#047857}
 .card .art svg{width:66%;height:66%}
 .card .cname{font:900 clamp(13px,1.35vw,16px)/1.1 var(--font-body);margin-top:6px;padding-inline:4px}
 .card .ctext{font:800 clamp(11px,1.1vw,13px)/1.2 var(--font-body);padding:3px 6px;color:#333;flex:1}
@@ -321,6 +338,7 @@ p{margin:0}
 .clockwrap.out .late{display:inline}
 .pm-body{display:grid;grid-template-columns:1fr minmax(250px,320px);gap:18px;padding:18px}
 .boardcol{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-width:0}
+.qpart{display:contents}
 .msg{min-height:1.4em;text-align:center;font-size:17px;color:var(--warn)}
 .tip{background:rgba(111,211,255,.12);border-radius:12px;padding:10px 14px;font-size:17px;max-width:46ch;color:var(--chalk);box-shadow:inset 0 0 0 2px rgba(111,211,255,.35)}
 .grid{display:grid;grid-template-columns:repeat(calc(var(--w) + 1),1.2em);justify-content:center;font:900 clamp(44px,8vmin,80px)/1 var(--font-body);
@@ -478,6 +496,52 @@ p{margin:0}
 .sec .mast{grid-area:mast}
 details.rep{background:rgba(0,0,0,.35);border-radius:14px;padding:10px 14px}
 details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:pointer;padding:4px 0}
+.panelbox h3 small{font:800 13px var(--font-body);color:var(--muted)}
+.libcards{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;padding-block:4px}
+.card.unknown{display:grid;place-items:center;background:repeating-linear-gradient(135deg,#1d2723 0 10px,#18211d 10px 20px);box-shadow:0 6px 0 rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.12)}
+.card.unknown span{font:400 54px/1 var(--font-display);color:rgba(255,255,255,.22)}
+.libteams{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;align-items:start}
+.libteam{background:rgba(255,255,255,.05);border-radius:12px;padding:8px 10px}
+.libteam summary,.libteam.unknown{display:flex;align-items:center;gap:10px;list-style:none;cursor:pointer;min-height:34px}
+.libteam summary::-webkit-details-marker{display:none}
+.libteam[open]{box-shadow:inset 0 0 0 2px var(--opp)}
+.libteam.unknown{color:var(--muted);cursor:default}
+.libteam.unknown .oppbadge{background:rgba(255,255,255,.1);color:var(--muted);font-size:16px}
+.libteam ol{list-style:none;margin:10px 0 4px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:14px}
+.libteam li span{display:inline-block;min-width:2em;color:var(--gold);font-weight:900;font-variant-numeric:tabular-nums}
+.librelics .level{cursor:default}
+.libicon{width:44px;height:44px;display:grid;place-items:center;color:var(--gold);font:400 30px var(--font-display)}
+.level.unknown{opacity:.55}
+.level.unknown .libicon{color:var(--muted)}
+.trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.trophy{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 12px;border-radius:16px;
+  text-align:center;color:var(--muted);background:rgba(0,0,0,.4);box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
+.trophy .ticon{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.06);color:rgba(255,255,255,.3);font:400 28px var(--font-display)}
+.trophy .ticon svg{width:30px;height:30px}
+.trophy b{font:400 16px/1.25 var(--font-display);color:var(--chalk)}
+.trophy .ttext{font-size:14px;line-height:1.3}
+.tbar{width:80%;height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:2px}
+.tbar i{display:block;height:100%;border-radius:4px;background:var(--gold)}
+.tprog{font-size:12px;font-variant-numeric:tabular-nums}
+.trophy.on{color:#f5e6c0;background:linear-gradient(160deg,rgba(245,197,66,.2),rgba(0,0,0,.45));box-shadow:inset 0 0 0 2px rgba(245,197,66,.6)}
+.trophy.on .ticon{color:#3a2600;background:radial-gradient(circle at 35% 30%,#fffbe0,#f5c542 55%,#a87200);box-shadow:0 0 16px rgba(255,214,90,.5)}
+.trophy.on b{color:var(--gold)}
+.trophy.secret:not(.on){box-shadow:inset 0 0 0 2px rgba(192,38,211,.35)}
+.trophy.secret:not(.on) .ticon{color:rgba(240,171,252,.5);background:rgba(192,38,211,.12)}
+.trophy.secret.on{color:#f5d0fe;background:linear-gradient(140deg,#1a0b2e,#4a0f6b 55%,#14061f);box-shadow:inset 0 0 0 2px #e879f9,0 0 22px rgba(192,38,211,.55)}
+.trophy.secret.on .ticon{color:#1a0b2e;background:conic-gradient(from var(--holo,0deg),#ffd75e,#f472b6,#a78bfa,#67e8f9,#ffd75e);animation:holo 4s linear infinite;box-shadow:0 0 20px rgba(232,121,249,.8)}
+.trophy.secret.on b{color:#ffd75e;text-shadow:0 0 10px rgba(232,121,249,.9)}
+.trophy.secret.on::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.18) 50%,transparent 65%);animation:sheen 3.5s ease-in-out infinite}
+.trophyban{position:fixed;left:50%;top:12%;z-index:90;display:flex;align-items:center;gap:12px;padding:12px 22px 12px 14px;border-radius:18px;pointer-events:none;
+  background:#16110a;box-shadow:0 0 0 3px #f5c542,0 14px 34px rgba(0,0,0,.6);animation:trophyIn 2.6s forwards}
+.trophyban .ticon{width:46px;height:46px;flex:none;border-radius:50%;display:grid;place-items:center;color:#3a2600;background:radial-gradient(circle at 35% 30%,#fffbe0,#f5c542 55%,#a87200)}
+.trophyban .ticon svg{width:28px;height:28px}
+.trophyban small{display:block;font:800 12px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:#f5e6c0}
+.trophyban b{font:400 20px/1.22 var(--font-display);color:var(--gold)}
+.trophyban.secret{background:linear-gradient(140deg,#1a0b2e,#4a0f6b);box-shadow:0 0 0 3px #e879f9,0 0 34px rgba(192,38,211,.75)}
+.trophyban.secret .ticon{background:conic-gradient(#ffd75e,#f472b6,#a78bfa,#67e8f9,#ffd75e)}
+@keyframes trophyIn{0%{opacity:0;transform:translate(-50%,-24px) scale(.9)}10%,85%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-12px)}}
 
 @media (max-width:820px){
   .path{grid-template-columns:repeat(3,1fr)}
@@ -574,13 +638,23 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
   .hand .card .rtag{display:none}
   /* uppgiftsrutan */
   #modal{display:flex;flex-direction:column;padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
-  .pm{margin:auto;border-radius:18px}
+  .pm{margin:auto;border-radius:18px;max-height:100%}
+  .pm-body{flex:1 1 auto;min-height:0}
+  .pm-body>.boardcol{min-height:0;overflow-y:auto;justify-content:flex-start}
+  .pm-body>.boardcol>:first-child{margin-top:auto}
+  .pm-body>.boardcol>:last-child{margin-bottom:auto}
+  .pm-body>.boardcol>*{flex-shrink:0}
+  .pm-body>.boardcol>.qpart{display:flex;flex-direction:column;align-items:center;gap:inherit;width:100%;min-height:0;flex-shrink:1;overflow-y:auto}
+  .qpart>*{flex-shrink:0}
+  .msg:empty{display:none}
   .pm-head .eyebrow{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
   .pm-head .btn{min-height:38px;padding:6px 14px;font-size:15px}
   .tierchip{font-size:10px;padding:5px 9px}
   .clockwrap{padding:6px 12px 0}
-  .numpad{gap:8px}
+  .numpad{gap:8px;grid-template-columns:repeat(5,minmax(0,1fr))}
   .numpad button{border-radius:13px;box-shadow:0 4px 0 #121a17}
+  .numpad .fn{order:1}
+  .numpad span{display:none}
   .padcol{gap:8px}
   .steps li{font-size:15px;padding:8px 12px}
   .infobox .ib{padding:16px 18px;gap:8px}
@@ -621,17 +695,21 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
   .hand .card .ctier i{display:none}
   /* uppgiftsrutan: knappar överst, rubriken på egen rad */
   #modal{padding-top:max(6px,env(safe-area-inset-top,0px));padding-bottom:max(6px,env(safe-area-inset-bottom,0px))}
-  .pm-head{flex-wrap:wrap;padding:10px 12px;gap:8px 10px}
+  .pm-head{flex-wrap:wrap;padding:8px 12px;gap:6px 10px}
   .pm-head .grow{order:2;flex-basis:100%}
   .pm-head .tierchip{margin-right:auto}
   .pm-head h2{font-size:18px}
-  .pm-body{padding:10px 12px 12px;gap:10px}
-  .numpad button{min-height:48px;font-size:26px}
-  .submit{min-height:56px;font-size:22px}
-  .grid{font-size:min(10.5vw,52px)}
+  .pm-body{padding:8px 12px 10px;gap:8px;grid-template-rows:minmax(0,1fr) auto}
+  .pm-body.one{grid-template-rows:minmax(0,1fr) auto auto}
+  .numpad button{min-height:44px;font-size:26px}
+  .submit{min-height:52px;font-size:22px}
+  .grid{font-size:min(9.5vw,52px)}
   .qtext{font-size:19px}
   .qfig{max-height:22vh}
   .fields{font-size:34px}
+  .tip{font-size:15px;padding:8px 12px}
+  .qtable{font-size:16px}
+  .qtable th,.qtable td{padding:4px 10px}
   .choices{gap:8px}
   .choice{min-height:56px;font-size:19px}
   .solpanel{padding:12px;gap:12px}
@@ -656,6 +734,10 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
   .pside.them{grid-area:them}
   .pmid .eyebrow{font-size:9px;margin:0}
   .pmid b{font-size:26px}
+  .trophies{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .trophy{padding:12px 8px}
+  .trophy .ttext{font-size:13px}
+  .libcards{gap:8px}
 }
 /* telefon på bredden: planen till vänster, korten till höger */
 @media (max-height:500px) and (orientation:landscape){
@@ -686,8 +768,11 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
   .pm{border-radius:16px}
   .pm-head{padding:6px 12px;gap:10px}
   .pm-head h2{font-size:16px}
-  .pm-body{grid-template-columns:minmax(0,1fr) minmax(210px,290px);padding:8px 12px 10px;gap:12px}
-  .pm-body.one{grid-template-columns:1fr}
+  .pm-body{grid-template-columns:minmax(0,1fr) minmax(210px,290px);grid-template-rows:minmax(0,1fr);padding:8px 12px 10px;gap:12px}
+  .pm-body.one{grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"q c" "q s"}
+  .pm-body.one>.boardcol{grid-area:q}
+  .pm-body.one>.choices{grid-area:c;align-self:center}
+  .pm-body.one>.small-actions{grid-area:s}
   .padcol{gap:6px}
   .numpad{gap:6px}
   .numpad button{min-height:38px;font-size:22px;border-radius:11px;box-shadow:0 3px 0 #121a17}
@@ -748,6 +833,8 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
 <script src="online-config.js"></script>
 <script src="curriculum.js"></script>
 <script src="teams.js"></script>
+<script src="samling.js"></script>
+<script src="effekter.js"></script>
 <script>
 'use strict';
 /* =========================================================
@@ -776,6 +863,14 @@ const CARDS = {
   shaw:      { player:'Shaw',       num:23, name:'Hörna',           cost:1, tier:2, atk:3, buff:3, kind:'atk', icon:'flag', r:'common' },
   heaven:    { player:'Heaven',     num:26, name:'Glidtackling',    cost:1, tier:2, def:7, kind:'def', icon:'shield', r:'common' },
   mazraoui:  { player:'Mazraoui',   num:3,  name:'Överlapp',        cost:1, tier:2, atk:3, def:3, kind:'atk', icon:'zig', r:'common' },
+  amad2:     { player:'Amad',       num:16, name:'Tunnel',          cost:0, tier:2, atk:2, pierce:true, kind:'atk', icon:'zig', r:'common' },
+  mount2:    { player:'Mount',      num:7,  name:'Distansskott',    cost:1, tier:2, atk:4, pierce:true, kind:'atk', icon:'ball', r:'common' },
+  maguire2:  { player:'Maguire',    num:5,  name:'Rensning',        cost:1, tier:2, def:5, atk:2, kind:'def', icon:'head', r:'common' },
+  ugarte2:   { player:'Ugarte',     num:25, name:'Pressing',        cost:1, tier:1, def:5, kind:'def', icon:'shield', r:'common' },
+  glue:      { player:'Utrustning', name:'Klisterhandskar', cost:1, tier:2, fx:{ turns:2, mur:3 }, kind:'gear', icon:'glove', r:'common' },
+  speed:     { player:'Utrustning', name:'Snabbskor',       cost:1, tier:2, fx:{ turns:2, energy:1 }, kind:'gear', icon:'boot', r:'common' },
+  rain:      { player:'Väder',      name:'Regn',            cost:1, tier:2, fx:{ turns:2, opp:3, weather:'rain' }, kind:'env', icon:'rain', r:'common' },
+  fog:       { player:'Väder',      name:'Dimma',           cost:1, tier:1, fx:{ turns:2, guard:4, opp:2, weather:'fog' }, kind:'env', icon:'fog', r:'common' },
   // sällsynta
   bruno:     { player:'Fernandes',  num:8,  name:'Kaptenens pepp',  cost:1, tier:2, rally:2, draw:1, kind:'skill', icon:'band', r:'rare' },
   rashford:  { player:'Rashford',   num:9,  name:'Frispark',        cost:2, tier:3, atk:7, def:4, kind:'atk', icon:'ball', r:'rare' },
@@ -783,10 +878,19 @@ const CARDS = {
   deligt:    { player:'de Ligt',    num:4,  name:'Försvarsmur',     cost:2, tier:3, def:10, atk:2, kind:'def', icon:'wall', r:'rare' },
   lammens:   { player:'Lammens',    num:1,  name:'Målvaktsutkast',  cost:1, tier:3, def:4, draw:2, kind:'def', icon:'glove', r:'rare' },
   tielemans: { player:'Tielemans',  num:18, name:'Spelvändning',    cost:1, tier:3, atk:4, draw:1, kind:'atk', icon:'pass', r:'rare' },
+  mbeumo2:   { player:'Mbeumo',     num:19, name:'Volley',          cost:1, tier:3, atk:5, pierce:true, kind:'atk', icon:'star', r:'rare' },
+  bruno2:    { player:'Fernandes',  num:8,  name:'Djupledsboll',    cost:1, tier:3, atk:3, buff:5, kind:'atk', icon:'pass', r:'rare' },
+  yoro2:     { player:'Yoro',       num:15, name:'Återerövring',    cost:1, tier:3, def:3, energy:1, kind:'def', icon:'bolt', r:'rare' },
+  martinez2: { player:'Martínez',   num:6,  name:'Lejonhjärta',     cost:2, tier:3, def:11, kind:'def', icon:'wall', r:'rare' },
+  fireball:  { player:'Utrustning', name:'Eldboll',         cost:1, tier:3, buff:5, fire:true, kind:'gear', icon:'fire', r:'rare' },
+  iceball:   { player:'Utrustning', name:'Isboll',          cost:1, tier:3, fx:{ turns:1, opp:7 }, kind:'gear', icon:'ice', r:'rare' },
+  wind:      { player:'Väder',      name:'Stormvind',       cost:0, tier:3, fx:{ turns:3, atk:1, weather:'wind' }, kind:'env', icon:'wind', r:'rare' },
   // episka
   lammens2:  { player:'Lammens',    num:1,  name:'Superräddning',   cost:2, tier:4, def:16, kind:'def', icon:'glove', r:'epic' },
   zirkzee:   { player:'Zirkzee',    num:11, name:'Cykelspark',      cost:3, tier:4, atk:18, kind:'atk', icon:'star', r:'epic' },
   baleba:    { player:'Baleba',     num:20, name:'Mittfältsmotor',  cost:1, tier:4, energy:2, draw:1, kind:'skill', icon:'bolt', r:'epic' },
+  sesko2:    { player:'Šeško',      num:30, name:'Skott i krysset', cost:2, tier:4, atk:12, pierce:true, kind:'atk', icon:'ball', r:'epic' },
+  thunder:   { player:'Väder',      name:'Åskväder',        cost:1, tier:4, strike:true, fx:{ turns:3, atk:3, weather:'storm' }, kind:'env', icon:'storm', r:'epic' },
   // legendariska – United-legender, mycket sällsynta
   cantona:   { player:'Cantona',    num:7,  name:'Kungens volley',  cost:2, tier:4, atk:12, rally:2, kind:'atk', icon:'crown', r:'legend' },
   schmeichel:{ player:'Schmeichel', num:1,  name:'Stjärnräddning',  cost:1, tier:4, def:14, energy:1, kind:'def', icon:'glove', r:'legend' },
@@ -797,9 +901,9 @@ const CARDS = {
 };
 const START_DECK = ['p_mainoo','p_mount','p_ugarte','p_dalot','t_maguire','t_yoro','t_martinez','s_mbeumo'];
 const POOL = {
-  common: ['amad','dorgu','sesko','shaw','heaven','mazraoui'],
-  rare:   ['bruno','rashford','cunha','deligt','lammens','tielemans'],
-  epic:   ['lammens2','zirkzee','baleba'],
+  common: ['amad','dorgu','sesko','shaw','heaven','mazraoui','amad2','mount2','maguire2','ugarte2','glue','speed','rain','fog'],
+  rare:   ['bruno','rashford','cunha','deligt','lammens','tielemans','mbeumo2','bruno2','yoro2','martinez2','fireball','iceball','wind'],
+  epic:   ['lammens2','zirkzee','baleba','sesko2','thunder'],
   legend: ['cantona','schmeichel','giggs','beckham','scholes','rooney'],
 };
 
@@ -844,7 +948,8 @@ const LEAGUE_IDS = LEAGUE_DEFS.map(l => l.id);
 function defaultSave(){
   const skills = {}; CURRICULUM.forEach(s => skills[s.code] = { box:1, last:-99, right:0, wrong:0, help:0 });
   const prog = {}; LEAGUE_IDS.forEach(l => prog[l] = { open:1, won:[false, false, false] });
-  return { skills, prog, counter:0, stats:{ runs:0, cups:0, right:0, total:0 }, settings:{ sound:true, clock:true }, run:null };
+  return { skills, prog, counter:0, stats:{ runs:0, cups:0, right:0, total:0 }, settings:{ sound:true, clock:true }, run:null,
+    lib:{ cards:[], relics:[], teams:[] }, trophies:{} };
 }
 function loadSave(){
   const def = defaultSave();
@@ -865,6 +970,7 @@ function loadSave(){
 function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e){} }
 
 let save = loadSave();
+checkTrophies(true);
 let R = null;      // aktuell cup
 let M = null;      // aktuell match
 let P = null;      // aktuellt tal
@@ -940,6 +1046,13 @@ const ICONS = {
   star:  '<path d="M24 5l5.6 11.9 13 1.6-9.6 9 2.5 12.9L24 34l-11.5 6.4L15 27.5l-9.6-9 13-1.6z"/>',
   crown: '<path d="M7 36l-2-21 11 9 8-14 8 14 11-9-2 21z" fill="currentColor" fill-opacity=".25"/><path d="M8 41h32"/><circle cx="5" cy="14" r="2.5"/><circle cx="24" cy="8" r="2.5"/><circle cx="43" cy="14" r="2.5"/>',
   heart: '<path d="M24 41S7 31 7 18a9 9 0 0 1 17-4 9 9 0 0 1 17 4c0 13-17 23-17 23z" fill="currentColor"/>',
+  fire:  '<path d="M24 5c2 7 11 12 11 23a11 11 0 0 1-22 0c0-6 3-10 6-14 1 4 3 6 5 7 1-5 0-11 0-16z" fill="currentColor" fill-opacity=".25"/><path d="M24 43a5 5 0 0 1-5-5c0-3 3-5 5-9 2 4 5 6 5 9a5 5 0 0 1-5 5z"/>',
+  ice:   '<path d="M24 5v38M7.5 14.5l33 19M7.5 33.5l33-19"/><path d="M19 8l5 4 5-4M19 40l5-4 5 4M8 21l6-1-2-6M40 27l-6 1 2 6M8 27l6 1-2 6M40 21l-6-1 2-6"/>',
+  boot:  '<path d="M12 8h10l2 13 11 5c4 2 6 5 6 9v3H8l2-16z"/><path d="M8 38h33M14 30h4M20 30h4"/><path d="M4 16h6M2 22h7"/>',
+  rain:  '<path d="M14 27a8 8 0 0 1 1-16 10 10 0 0 1 19 1 7.5 7.5 0 0 1 1 15z"/><path d="M16 33l-3 7M24 33l-3 7M32 33l-3 7"/>',
+  wind:  '<path d="M5 17h24a6 6 0 1 0-6-6"/><path d="M5 26h32a6 6 0 1 1-6 6"/><path d="M5 35h14"/>',
+  storm: '<path d="M14 26a8 8 0 0 1 1-16 10 10 0 0 1 19 1 7.5 7.5 0 0 1 1 15"/><path d="M26 24l-7 10h8l-5 10 11-14h-8l4-6z" fill="currentColor"/>',
+  fog:   '<path d="M14 18a8 8 0 0 1 1-8 10 10 0 0 1 19 1"/><path d="M6 24h36M10 31h30M6 38h28"/>',
 };
 const icon = (k, extra = '') => `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${ICONS[k] || ''}</svg>`;
 const BALL_SVG = `<svg class="ballsvg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#fff" stroke="#111" stroke-width="2.5"/><path d="M24 14l8 6-3 9.5H19L16 20z" fill="#111"/><path d="M24 3v11M32 20l12-4M29 29.5l7 11M19 29.5l-7 11M16 20L4 16" stroke="#111" stroke-width="2.5" fill="none"/></svg>`;
@@ -958,8 +1071,11 @@ function describe(c){
   if (c.def) p.push(`+${c.def} mur`);
   if (c.draw) p.push(`dra ${c.draw} kort`);
   if (c.energy) p.push(`+${c.energy} energi`);
-  if (c.buff) p.push(`nästa anfall +${c.buff}`);
+  if (c.buff) p.push(`nästa anfall +${c.buff}${c.fire ? ' och går igenom försvaret' : ''}`);
   if (c.rally) p.push(`alla anfall +${c.rally} denna tur`);
+  if (c.pierce) p.push('går igenom försvaret');
+  if (c.strike) p.push('försvar 0');
+  if (c.fx) p.push(`${fxSpan(c.fx)}: ${fxText(c.fx)}`);
   return p.join(', ');
 }
 function cardHTML(id, o = {}){
@@ -1266,12 +1382,31 @@ function drawField(now){
   drawFx(c, now);
 }
 function once(fn){ let done = false; return () => { if (!done){ done = true; fn && fn(); } }; }
-function watchdog(impact, done, ms = 9000){ setTimeout(() => { impact(); done(); }, ms); }
+const WATCHDOG_MS = 9000, EXTRA_GOAL_MS = 4000;
+function watchdog(impact, done, ms = WATCHDOG_MS){ setTimeout(() => { impact(); done(); }, ms); }
+function goalQueue(o){
+  let left = o.goals || 0;
+  const next = () => { if (left > 0){ left--; o.onGoal(); } };
+  return { next, extra:Math.max(0, left - 1), flush:() => { while (left > 0) next(); } };
+}
+function goalReplays(net, q){
+  const ours = net === 'them', kicker = (ours ? F.them : F.us)[9], st = [];
+  for (let i = 0; i < q.extra; i++){
+    const p = nearest(ours ? F.us : F.them, { x:.5, y:.5 }, m => m.role === 'F');
+    st.push(ST.tackle(p, kicker), ST.carry(p, { x:ours ? .78 : .27, y:.5 }, 650),
+      ST.pass({ x:ours ? .99 : .01, y:.5 + (Math.random() - .5) * .13 }, { arc:.1, dur:430, shot:true, goal:net, then:q.next }), ST.wait(1500), ST.reset(net), ST.wait(250));
+  }
+  return st;
+}
 
-const SHOTS = ['Skott', 'Långskott', 'Nick', 'Frispark', 'Cykelspark', 'Kungens volley', 'Från mittlinjen', 'Derby-cykelspark'];
-const AIR = { 'Nick':.2, 'Cykelspark':.45, 'Derby-cykelspark':.5, 'Kungens volley':.3 };
+const SHOTS = ['Skott', 'Långskott', 'Nick', 'Frispark', 'Cykelspark', 'Kungens volley', 'Från mittlinjen', 'Derby-cykelspark', 'Distansskott', 'Volley', 'Skott i krysset'];
+const AIR = { 'Nick':.2, 'Cykelspark':.45, 'Derby-cykelspark':.5, 'Kungens volley':.3, 'Volley':.3 };
 function fieldCard(c, o, onImpact, onDone){
-  const impact = once(onImpact), done = once(onDone); watchdog(impact, done);
+  const q = goalQueue(o), shots = c.kind === 'atk' && o.goals > 0;
+  const impact = once(() => { if (o.fire) F.superBall = false; onImpact(); if (!shots) q.flush(); }), done = once(() => { q.flush(); onDone(); });
+  watchdog(impact, done, WATCHDOG_MS + q.extra * EXTRA_GOAL_MS);
+  if (isTool(c)){ F.steps.push(ST.wait(TOOL_WAIT_MS, { then:() => { toolFx(c); impact(); } }), ST.wait(TOOL_WAIT_MS), ST.call(done)); return; }
+  if (o.fire) F.superBall = true;
   const p = onPitch(c); F.hi = p; F.hiUntil = performance.now() + 2800;
   const st = [], gy = () => .5 + (Math.random() - .5) * .13, oppGK = F.them[0];
   if (c.kind === 'atk'){
@@ -1290,7 +1425,7 @@ function fieldCard(c, o, onImpact, onDone){
         if (c.name === 'Frispark') arc = .55;
         if (c.name === 'Från mittlinjen') arc = .8;
       }
-      if (o.goals) st.push(ST.pass({ x:.99, y:gy() }, { arc, dur:430, shot:true, goal:'them', then:impact }), ST.wait(1500), ST.reset('them'), ST.wait(250));
+      if (o.goals) st.push(ST.pass({ x:.99, y:gy() }, { arc, dur:430, shot:true, goal:'them', then:() => { impact(); q.next(); } }), ST.wait(1500), ST.reset('them'), ST.wait(250), ...goalReplays('them', q));
       else if (o.atk && o.absorbed >= o.atk) st.push(ST.pass(nearest(F.them, { x:.86, y:.5 }, q => q.role === 'D'), { arc, shot:true, then:impact }), ST.wait(250));
       else st.push(ST.pass(oppGK, { arc, dur:450, shot:true, then:impact }), ST.wait(450), ST.pass(nearest(F.them, { x:.7, y:.5 }, q => q.role === 'M'), { arc:.6 }));
     } else {
@@ -1419,7 +1554,8 @@ function superEnd(){ F.super = null; F.superBall = false; }
 
 function fieldEnemy(o, onImpact, onDone){
   const sup = !!o.atk && o.label === 'Superanfall';
-  const impact0 = once(onImpact), done = once(onDone); watchdog(impact0, done, sup ? 16000 : 9000);
+  const q = goalQueue(o), impact0 = once(onImpact), done = once(() => { q.flush(); onDone(); });
+  watchdog(impact0, done, (sup ? 16000 : WATCHDOG_MS) + q.extra * EXTRA_GOAL_MS);
   const impact = sup ? () => { superImpact(!o.goals); impact0(); } : impact0;
   const st = [], gk = F.us[0];
   if (o.atk){
@@ -1430,7 +1566,7 @@ function fieldEnemy(o, onImpact, onDone){
     st.push(ST.carry(opF, { x:sup ? .2 : .27, y:clamp(opF.y, .3, .7) }, sup ? 1000 : 750));
     if (sup) st.push(ST.call(superKick));
     const sdur = sup ? 560 : 430, sarc = sup ? .32 : .1;
-    if (o.goals) st.push(ST.pass({ x:.01, y:.5 + (Math.random() - .5) * .13 }, { arc:sarc, dur:sdur, shot:true, goal:'us', then:impact }), ST.wait(1500), ST.reset('us'), ST.wait(250));
+    if (o.goals) st.push(ST.pass({ x:.01, y:.5 + (Math.random() - .5) * .13 }, { arc:sarc, dur:sdur, shot:true, goal:'us', then:() => { impact(); q.next(); } }), ST.wait(1500), ST.reset('us'), ST.wait(250), ...goalReplays('us', q));
     else if (o.dmg === 0) st.push(sup ? ST.pass({ x:.12, y:.5 }, { arc:sarc, dur:sdur, shot:true, then:impact }) : ST.tackle(nearest(F.us, { x:.2, y:opF.y }, q => q.role === 'D'), opF, { then:impact }), ST.wait(sup ? 700 : 200));
     else st.push(ST.pass(gk, { arc:sarc, dur:sdur, shot:true, then:impact }), ST.wait(sup ? 800 : 400), ST.pass(nearest(F.us, { x:.22, y:.3 }, q => q.role === 'D')));
   } else {
@@ -1445,8 +1581,10 @@ function startMatch(){
   const o = R.opps[R.stage];
   M = { opp:o, turn:1, maxTurns:6 + (has('clock') ? 1 : 0), energyMax:3, energy:3, hand:[], draw:shuffle(R.deck), discard:[],
         mur:0, myChance:0, oppChance:0, myGoals:0, oppGoals:0, oppGuard:0, intent:null, buffNext:0, rally:0, streak:0,
-        retryUsed:false, phase:'play', thrMe:12 + 2 * R.stage, thrOpp:12, pens:null, result:null };
+        retryUsed:false, phase:'play', thrMe:12 + 2 * R.stage, thrOpp:12, pens:null, result:null,
+        behind:0, miss:0, answered:0, lastLead:null, fx:[], pierce:false };
   busy = false;
+  libSee('teams', o.name); libSee('cards', R.deck);
   fieldInit(o);
   F.loop++; F.running = false;
   go('match'); sfx('whistle');
@@ -1472,9 +1610,11 @@ function rollIntent(){
 function startTurn(){
   M.energy = M.energyMax + (M.turn === 1 && has('scarf') ? 1 : 0);
   M.mur = has('gloves') ? 2 : 0; M.rally = 0;
+  if (M.turn === M.maxTurns) M.lastLead = M.myGoals > M.oppGoals;
   drawCards(has('bench') ? 6 : 5);
   M.intent = rollIntent();
   M.oppGuard = M.intent.def;
+  fxTurnStart();
   if (M.intent.atk && !(save.seen && save.seen.mur)){ save.seen = Object.assign(save.seen || {}, { mur:true }); persist(); setTimeout(() => { if (M && M.phase === 'play' && !P) info('mur'); }, 700); }
   if (M.intent.label === 'Superanfall') setTimeout(() => { if (M && M.phase === 'play') toast(`Varning: ${M.opp.players[9][1]} förbereder ett superanfall! Bygg en stark mur.`); sfx('superWarn'); }, 300);
   F.oppDrop = M.intent.def ? .06 : 0;
@@ -1513,6 +1653,7 @@ function applyCard(c, res){
   const ok = res.correct;
   if (c.r === 'legend') legendFx(c);
   if (ok) M.streak++; else M.streak = 0;
+  noteAnswer(ok, res.fast);
   const half = v => ok ? v : Math.max(1, Math.floor(v / 2));
   const floorHalf = v => ok ? v : Math.floor(v / 2);
   let bonus = 0; const notes = [];
@@ -1520,31 +1661,36 @@ function applyCard(c, res){
   if (ok && M.streak >= 3){ const b = has('lucky') ? 2 : 1; bonus += b; notes.push([`${M.streak} rätt i rad! +${b}`, 'gold']); }
   if (!ok) notes.push(['Halv effekt', 'red']);
   let atk = 0, def = 0;
-  if (c.atk){ atk = half(c.atk + M.buffNext + M.rally + (has('boots') ? 1 : 0)) + (c.kind === 'atk' ? bonus : 0); M.buffNext = 0; }
+  if (c.atk){ atk = half(c.atk + M.buffNext + M.rally + fxSum('atk') + (has('boots') ? 1 : 0)) + (c.kind === 'atk' ? bonus : 0); M.buffNext = 0; }
   if (c.def){ def = half(c.def) + (c.kind === 'def' ? bonus : 0); }
   if (c.buff) M.buffNext += half(c.buff);
   if (c.rally) M.rally += half(c.rally);
   if (c.energy) M.energy += floorHalf(c.energy);
   if (c.draw) drawCards(floorHalf(c.draw));
+  const fired = !!atk && !!M.pierce, pierce = fired || !!(atk && c.pierce);
+  if (atk) M.pierce = false;
+  if (c.fire) M.pierce = true;
+  if (c.fx) addFx(c, ok);
+  if (c.strike) M.oppGuard = 0;
   // i kompismatch samlas anfallet och möter kompisens mur först när båda avslutat turen
-  const absorbed = atk && !M.vs ? Math.min(M.oppGuard, atk) : 0;
+  const absorbed = atk && !M.vs && !pierce ? Math.min(M.oppGuard, atk) : 0;
   let chance = M.myChance + (M.vs ? 0 : atk - absorbed), goals = 0;
   while (chance >= M.thrMe){ chance -= M.thrMe; goals++; }
+  if (goals > 1) best('multi', goals);
   busy = true;
   render();
   if (c.energy && floorHalf(c.energy)) floatAt(`+${floorHalf(c.energy)} energi`, '.energy', 'gold');
   notes.forEach((n, k) => setTimeout(() => floatAt(n[0], '.pitch', n[1]), 200 + k * 350));
   const m0 = M;
-  fieldCard(M.vs && SHOTS.includes(c.name) ? { ...c, name:'Passning' } : c, { atk:M.vs ? 0 : atk, absorbed, goals, def }, () => {
+  fieldCard(M.vs && SHOTS.includes(c.name) ? { ...c, name:'Passning' } : c, { atk:M.vs ? 0 : atk, absorbed, goals, def, fire:fired, onGoal:goalTick(true, m0) }, () => {
     if (M !== m0) return;
     if (def) M.mur += def;
     if (atk && M.vs) M.atkTurn += atk;
-    else if (atk){ M.oppGuard -= absorbed; M.myChance = chance; M.myGoals += goals; }
+    else if (atk){ M.oppGuard -= absorbed; M.myChance = chance; }
     render();
     if (def){ floatAt(`+${def} mur`, '#murBox', 'blue'); sfx('block'); }
     if (atk && M.vs) floatAt(`+${atk} anfall`, '#atkBox', 'gold');
     else if (atk){ if (absorbed) floatAt(`−${absorbed} stoppat`, '#guardBox', 'red'); if (atk - absorbed > 0) floatAt(`+${atk - absorbed} målchans`, '#meterMe', 'gold'); }
-    if (goals) goalFx(true);
   }, () => { if (M !== m0) return; busy = false; render(); });
 }
 function endTurn(){
@@ -1556,19 +1702,19 @@ function endTurn(){
   const it = M.intent, blocked = it.atk ? Math.min(M.mur, it.atk) : 0, dmg = it.atk ? it.atk - blocked : 0;
   let oc = M.oppChance + dmg, goals = 0;
   while (oc >= M.thrOpp){ oc -= M.thrOpp; goals++; }
+  if (it.label === 'Superanfall' && !dmg) bump('supers');
   const m0 = M;
-  fieldEnemy({ atk:it.atk, def:it.def, dmg, goals, label:it.label }, () => {
+  fieldEnemy({ atk:it.atk, def:it.def, dmg, goals, label:it.label, onGoal:goalTick(false, m0) }, () => {
     if (M !== m0) return;
-    M.oppChance = oc; M.oppGoals += goals;
+    M.oppChance = oc;
     render();
     if (it.atk){
       if (blocked){ floatAt(`${blocked} stoppat!`, '#murBox', 'blue'); sfx('block'); }
       if (dmg) floatAt(`+${dmg}`, '#meterOpp', 'red'); else floatAt('Inget farligt!', '.pitch', 'green');
-      if (goals) goalFx(false);
     } else floatAt(`${M.opp.name} försvarar`, '.pitch', 'blue');
   }, () => {
     if (M !== m0) return;
-    M.turn++; M.oppGuard = 0;
+    M.turn++; M.oppGuard = 0; fxTurnEnd();
     busy = false;
     if (M.turn > M.maxTurns) fullTime(); else startTurn();
   });
@@ -1832,9 +1978,11 @@ function pensDecided(){
   return null;
 }
 function endMatch(win){
+  if (win) noteWin();
   M.phase = 'done'; M.result = win ? 'win' : 'lose';
   if (win) R.wins++; else R.hearts--;
   persist();
+  checkTrophies();
   render();
   sfx(win ? 'cheer' : 'concede');
   if (win) confetti();
@@ -1845,6 +1993,7 @@ function afterMatch(){
   if (R.stage === 5){ finishRun(true); return; }
   R.stage++;
   R.offer = makeCardOffer();
+  libSee('cards', R.offer);
   go('reward');
   if (R.offer.some(id => CARDS[id].r === 'legend')) setTimeout(() => sfx('legend'), 250);
 }
@@ -1856,6 +2005,7 @@ function finishRun(won){
   }
   save.run = null; persist();
   go(won ? 'victory' : 'gameover');
+  checkTrophies();
   if (won){ sfx('cheer'); confetti(); setTimeout(confetti, 900); }
 }
 
@@ -1993,7 +2143,7 @@ function renderProblem(){
   if (p.kind === 'choice'){
     modal.innerHTML = `<div class="pm">${head}${clock}
       <div class="pm-body one">
-        <div class="boardcol">${qHTML(p)}${tip}${msg}</div>
+        <div class="boardcol"><div class="qpart">${qHTML(p)}</div>${tip}${msg}</div>
         <div class="choices">${p.choices.map((c, i) => `<button class="choice" data-act="pickChoice" data-k="${i}">${/^\d+\/\d+$/.test(c) ? fracHTML(...c.split('/')) : c}</button>`).join('')}</div>
         <div class="small-actions"><button class="chip" data-act="hint">Tips</button></div>
       </div></div>`;
@@ -2011,7 +2161,7 @@ function renderProblem(){
     modal.innerHTML = `<div class="pm">${head}${clock}
       <div class="pm-body">
         <div class="boardcol">
-          ${gridHTML({ prob:p, W:P.W, ans:P.ans, carries:P.carries, tops:P.tops, changed:P.changed, interactive:true, cursor:P.cursor })}
+          <div class="qpart">${gridHTML({ prob:p, W:P.W, ans:P.ans, carries:P.carries, tops:P.tops, changed:P.changed, interactive:true, cursor:P.cursor })}</div>
           ${tip || `<p class="muted" style="text-align:center;font-size:15px">${sub ? 'Börja med entalen. Behöver du växla? Tryck på siffran till vänster i övre raden.'
             : mul ? 'Börja med entalen. Minnessiffran skriver du i rutan ovanför nästa kolumn – tryck flera gånger för större siffra.'
             : 'Börja med entalen. Blir det 10 eller mer? Tryck på rutan ovanför nästa kolumn för minnessiffran.'}</p>`}
@@ -2022,13 +2172,19 @@ function renderProblem(){
           <button class="btn red submit" data-act="submit">${o.verb || 'KOLLA'}</button>
         </div>
       </div></div>`;
+    showField();
     return;
   }
   modal.innerHTML = `<div class="pm">${head}${clock}
     <div class="pm-body">
-      <div class="boardcol">${qHTML(p)}${fieldsHTML()}${tip}${msg}</div>
+      <div class="boardcol"><div class="qpart">${qHTML(p)}</div>${fieldsHTML()}${tip}${msg}</div>
       <div class="padcol">${keypad}<button class="btn red submit" data-act="submit">${o.verb || 'KOLLA'}</button></div>
     </div></div>`;
+  showField();
+}
+function showField(){
+  const f = modal.querySelector('.fld.cur, .ans.cur'), box = f && f.closest('.qpart, .boardcol');
+  if (box && box.scrollHeight > box.clientHeight) f.scrollIntoView({ block:'nearest' });
 }
 function tipFor(j){
   const p = P.prob, s = P.steps[j], A = digitsOf(p.a, P.W), B = digitsOf(p.b, P.W);
@@ -2076,6 +2232,7 @@ function record(id, ok, helped){
   save.stats.total++; if (ok) save.stats.right++;
   if (R){ R.total++; if (ok) R.right++; }
   persist();
+  checkTrophies();
 }
 function closeProblem(res){
   const o = P ? P.o : null; P = null; modal.hidden = true; modal.innerHTML = '';
@@ -2091,6 +2248,13 @@ function floatAt(text, sel, cls = ''){
   fx.appendChild(d); setTimeout(() => d.remove(), 1400);
 }
 function toast(t){ const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; fx.appendChild(d); setTimeout(() => d.remove(), 1900); }
+function goalTick(mine, m0){
+  return () => {
+    if (M !== m0) return;
+    if (mine){ M.myGoals++; bump('goals'); } else { M.oppGoals++; M.behind = Math.max(M.behind || 0, M.oppGoals - M.myGoals); }
+    render(); goalFx(mine);
+  };
+}
 function goalFx(mine){
   const d = document.createElement('div');
   d.className = 'banner' + (mine ? '' : ' sad');
@@ -2136,6 +2300,7 @@ const SCREENS = {
         <button class="btn big ${r ? 'red' : 'gold'}" data-act="leagues">${r ? 'Välj ny liga' : 'Välj liga'}</button>
         ${vsSession() ? `<button class="btn big gold" data-act="vsResume">Tillbaka till kompismatchen<small>Kod ${esc(vsSession().code)}${vsSession().opp ? ` mot ${esc(vsSession().opp.name)}` : ''}</small></button>` : ''}
         <button class="btn big" data-act="vs">Utmana en kompis<small>Onlinematch – var sin skärm</small></button>
+        <div class="row"><button class="btn" data-act="library">Bibliotek</button><button class="btn" data-act="trophies">Troféer ${trophyCount()}/${TROPHIES.length}</button></div>
         <div class="row"><button class="btn" data-act="train">Träning</button><button class="btn" data-act="howto">Så spelar du</button><button class="btn" data-act="adults">För vuxna</button></div>
         <div class="row"><button class="chip" data-act="toggleSound">Ljud: ${save.settings.sound ? 'på' : 'av'}</button><button class="chip" data-act="toggleClock">Snabbklocka: ${save.settings.clock ? 'på' : 'av'}</button></div>
       </div>
@@ -2197,6 +2362,8 @@ const SCREENS = {
     if (m.streak >= 2) tags.push(`<span class="tag hot">${m.streak} rätt i rad${m.streak >= 3 ? ' – publiken jublar!' : ''}</span>`);
     if (m.buffNext) tags.push(`<span class="tag">Nästa anfall +${m.buffNext}</span>`);
     if (m.rally) tags.push(`<span class="tag">Alla anfall +${m.rally} denna tur</span>`);
+    if (m.pierce) tags.push('<span class="tag fx">Eldboll: nästa anfall går igenom försvaret</span>');
+    tags.push(...fxTags());
     if (has('coach') && !m.retryUsed) tags.push('<span class="tag">Tränaren ger en extra chans</span>');
     if (vs && m.phase !== 'done') tags.push(`<button class="chip" data-act="vsLeave">${vsLeaveArmed ? 'Tryck igen för att lämna' : 'Lämna matchen'}</button>`);
     return `<section class="screen match" style="--opp:${o.color}">
@@ -2210,6 +2377,7 @@ const SCREENS = {
         <div class="pitch${m.phase === 'play' && it.label === 'Superanfall' ? ' danger' : ''}">
           <div class="box l"></div><div class="box r"></div><div class="goal l"></div><div class="goal r"></div>
           <div id="pitchSlot"></div>
+          ${weatherOf() ? `<div class="weather w-${weatherOf()}" aria-hidden="true"></div>` : ''}
           <div class="wall mine${m.mur ? '' : ' off'}" id="murBox" data-act="info" data-k="${vs ? 'vs' : 'mur'}"><b>${m.mur}</b><span>${vs ? 'Din mur' : 'Unitedmur'}</span><i>?</i></div>
           ${vs ? `<div class="wall theirs${m.reveal ? '' : ' off'}" id="guardBox" data-act="info" data-k="vs"><b>${m.reveal ? m.oppGuard : '?'}</b><span>${o.short}-mur</span><i>?</i></div>
           <div class="wall atk${m.atkTurn ? '' : ' off'}" id="atkBox" data-act="info" data-k="vs"><b>${m.atkTurn}</b><span>Ditt anfall</span><i>?</i></div>`
@@ -2240,7 +2408,7 @@ const SCREENS = {
     return `<section class="screen scroll"><div class="wrap center">
       ${hearts()}
       <p class="eyebrow">Seger mot ${beaten.name}</p>
-      <h2 class="h2">Välj en spelare till truppen</h2>
+      <h2 class="h2">Välj ett kort till truppen</h2>
       <p class="muted" style="max-width:48ch">Svårare kort är starkare men har svårare tal. Bra mix av anfall och försvar vinner cuper.</p>
       ${R.offer.some(id => CARDS[id].r === 'legend') ? '<p class="legendcall">En legend har dykt upp!</p>' : ''}
       <div class="offer">${R.offer.map((id, i) => cardHTML(id, { act:'pickCard', i, big:true })).join('')}</div>
@@ -2290,6 +2458,8 @@ const SCREENS = {
         <button class="btn" data-act="example" data-ex="sub">Subtraktion: 403 − 178</button></div></div>
     </div></section>`;
   },
+  library(){ return libraryHTML(); },
+  trophies(){ return trophiesHTML(); },
   howto(){
     return `<section class="screen scroll"><div class="wrap">
       <header class="topbar"><button class="btn ghost" data-act="home">Meny</button></header>
@@ -2319,6 +2489,10 @@ const SCREENS = {
           <li>Muren försvinner efter varje tur. Bygg den bara när de anfaller – annars är det bättre att anfalla själv.</li>
           <li>När de <b>försvarar</b> har de en egen mur nere till höger. Den stoppar dina första anfallspoäng på samma sätt.</li>
           <li>Tryck på rutorna på planen under matchen för att läsa förklaringen igen.</li></ul>
+        <h3>Utrustning och väder</h3>
+        <ul><li><b>Utrustningskort</b> (blå) ger en bonus en kort stund. <b>Eldboll</b> gör nästa anfall starkare och skjuter rakt igenom deras försvar. <b>Isboll</b> fryser deras anfall.</li>
+          <li><b>Väderkort</b> (gröna) ändrar vädret på planen i några turer. <b>Regn</b> gör deras anfall svagare, <b>Stormvind</b> ger medvind åt dina anfall och <b>Åskväder</b> slår ut deras försvar. Bara ett väder gäller åt gången.</li>
+          <li>Under planen ser du vilka bonusar som gäller och hur många turer de har kvar.</li></ul>
         <h3>Utmana en kompis</h3>
         <ul><li>Tryck <b>Utmana en kompis</b>. En av er skapar en match och får en kod, den andra går med med koden.</li>
           <li>Först väljer ni fyra spelare till truppen. Ni får exakt samma kort att välja mellan, och sist kommer Stjärnvalet bland de episka korten.</li>
@@ -2681,26 +2855,24 @@ function vsResolve(){
   const step2 = () => {
     if (M !== m0) return;
     if (!theirs.atk){ floatAt(`${v.opp.name} anföll inte`, '.pitch', 'green'); setTimeout(step3, 1000); return; }
-    fieldEnemy({ atk:theirs.atk, def:0, dmg:oppThrough, goals:after.og - before.og, label:'Anfaller' }, () => {
+    fieldEnemy({ atk:theirs.atk, def:0, dmg:oppThrough, goals:after.og - before.og, label:'Anfaller', onGoal:goalTick(false, m0) }, () => {
       if (M !== m0) return;
-      M.oppChance = after.oc; M.oppGoals = after.og; render();
+      M.oppChance = after.oc; M.oppGoals = before.og; render();
       const blocked = theirs.atk - oppThrough;
       if (blocked){ floatAt(`${blocked} stoppat!`, '#murBox', 'blue'); sfx('block'); }
       if (oppThrough) floatAt(`+${oppThrough}`, '#meterOpp', 'red'); else floatAt('Inget farligt!', '.pitch', 'green');
-      if (after.og > before.og) goalFx(false);
     }, step3);
   };
   setTimeout(() => {
     if (M !== m0) return;
     if (!mine.atk){ step2(); return; }
     const sh = pick(VS_SHOOTERS);
-    fieldCard({ kind:'atk', name:'Skott', player:sh[1], num:sh[0], icon:'ball' }, { atk:mine.atk, absorbed:mine.atk - myThrough, goals:after.mg - before.mg, def:0 }, () => {
+    fieldCard({ kind:'atk', name:'Skott', player:sh[1], num:sh[0], icon:'ball' }, { atk:mine.atk, absorbed:mine.atk - myThrough, goals:after.mg - before.mg, def:0, onGoal:goalTick(true, m0) }, () => {
       if (M !== m0) return;
-      M.myChance = after.mc; M.myGoals = after.mg; M.oppGuard = 0; render();
+      M.myChance = after.mc; M.myGoals = before.mg; M.oppGuard = 0; render();
       const stopped = mine.atk - myThrough;
       if (stopped) floatAt(`−${stopped} stoppat`, '#guardBox', 'red');
       if (myThrough) floatAt(`+${myThrough} målchans`, '#meterMe', 'gold');
-      if (after.mg > before.mg) goalFx(true);
     }, step2);
   }, 1300);
 }
@@ -2751,6 +2923,7 @@ function vsEnd(result, walkover){
   render();
   sfx(result === 'win' ? 'cheer' : result === 'lose' ? 'concede' : 'whistle');
   if (result === 'win') confetti();
+  if (result === 'win' && !walkover){ bump('vsWins'); persist(); checkTrophies(); }
 }
 function vsWalkover(){
   const name = VS.opp ? VS.opp.name : 'Kompisen';
@@ -2884,7 +3057,7 @@ const ACT = {
   play(d){ playCard(+d.i); },
   dive(d){ penDive(+d.c); },
   afterMatch,
-  pickCard(d){ const id = R.offer[+d.i]; R.deck.push(id); noteLegend(id); sfx('good'); toRelicOrMap(); },
+  pickCard(d){ const id = R.offer[+d.i]; R.deck.push(id); noteLegend(id); sfx('good'); checkTrophies(); toRelicOrMap(); },
   skipCard(){ toRelicOrMap(); },
   pickRelic(d){ const k = R.relicOffer[+d.i]; if (RELICS[k].instant){ if (k === 'bus') R.hearts++; } else R.relics.push(k); sfx('good'); go('map'); },
   train(){ go('train'); },
@@ -2892,6 +3065,8 @@ const ACT = {
   trainSec(d){ train.code = d.c; train.d = 1; train.streak = 0; trainNext(); },
   trainMix(d){ train.code = null; train.level = +d.v; train.d = 1; train.streak = 0; trainNext(); },
   howto(){ go('howto'); }, adults(){ go('adults'); },
+  library(){ go('library'); }, trophies(){ go('trophies'); },
+  libTab(d){ libView = d.k; render(); },
   example(d){ openProblem({ prob:{ ...EXAMPLES[d.ex], steps:[] }, example:true, eyebrow:'Exempel' }); },
   toggleSound(){ save.settings.sound = !save.settings.sound; persist(); render(); if (save.settings.sound) sfx('good'); },
   toggleClock(){ save.settings.clock = !save.settings.clock; persist(); render(); },
@@ -2989,6 +3164,7 @@ Object.assign(ACT, {
     if (!VS || VS.phase !== 'draft') return;
     const id = VS.draft.packs[VS.draft.round].cards[+d.i]; if (!id) return;
     VS.myP.picks.push(id); VS.deck.push(id); noteLegend(id); sfx('good');
+    libSee('cards', VS.draft.packs[VS.draft.round].cards); checkTrophies();
     VS.draft.round++;
     if (VS.draft.round >= VS_ROUNDS){ vsReady(); return; }
     vsSave(); vsPush(); render();
@@ -3012,7 +3188,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target && e.target.id === 'vsCode') ACT.vsJoin();
 });
 function toRelicOrMap(){
-  if (R.stage === 2 || R.stage === 4){ R.relicOffer = makeRelicOffer(); go('relic'); }
+  if (R.stage === 2 || R.stage === 4){ R.relicOffer = makeRelicOffer(); libSee('relics', R.relicOffer); go('relic'); }
   else go('map');
 }
 document.addEventListener('click', e => {

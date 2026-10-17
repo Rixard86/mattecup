@@ -27,6 +27,8 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 |---|---|
 | `index.html` | Hela spelet: CSS, data (`CARDS`, `POOL`, `RELICS`, `LINEUP`), match, plan, straffar, skärmar, kompismatch |
 | `curriculum.js` | 91 avsnitt (A/B/G), `gen(d)` med d = 1–4 (Brons, Silver, Guld, Stjärna), `makeProblem`, `checkAnswer`, `solveSteps`. Exporteras även för node. |
+| `samling.js` | Biblioteket (kort, motståndarlag, utrustning) och 30 troféer varav 5 hemliga. Laddas före spelets skript, så värden som behöver `CARDS` m.fl. måste räknas ut först vid anrop. |
+| `effekter.js` | Tillfälliga effekter från utrustnings- och väderkort (`M.fx`), väder på planen och deras animation. Laddas före spelets skript. |
 | `teams.js` | Lag per liga från svagast till starkast, `drawCup()`. Special League: alla lag i Allsvenskan och 32 världsklubbar, `SWE_TWO_CHANCE` |
 | `api/vs.js` | Vercel Function (Node, CommonJS) för kompismatch, ett relä mot Upstash Redis REST |
 | `online-config.js` | `window.VS_API`. Tom betyder samma adress som spelet (Vercel). På Synology anges Vercel-adressen här. |
@@ -36,7 +38,7 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 ## Arkitektur i `index.html`
 
 - **Globala tillstånd:**
-  - `save`: localStorage-nyckeln `unitedMattecup.v2`.
+  - `save`: localStorage-nyckeln `unitedMattecup.v2`. `save.lib` håller det spelaren har sett (`cards`, `teams` med lagnamn, `relics`) och `save.trophies` upplåsta troféer. `checkTrophies()` körs efter svar, match, cup och kortval.
   - `R`: pågående cup. Har `R.vs = true` i kompismatch.
   - `M`: pågående match. Har `M.vs = true` i kompismatch.
   - `P`: öppet mattetal.
@@ -49,6 +51,10 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 - **Straffar:** egen canvas `PV`, med funktionerna `penAim`, `penShootUs` och `penDive`.
 - **Mattetal:** `openProblem(o)` → `renderProblem()` → `submitProblem()` → `o.onDone({ correct, fast })`. `record()` sköter utspridd repetition med 5 lådor per avsnitt.
 - **Kort:** rätt svar ger full effekt, fel svar halv. Snabbt rätt svar ger +2 och tre rätt i rad ger publikbonus. `applyCard` räknar effekten.
+- **Korttyper** (`kind`): `atk`, `def`, `skill`, samt `gear` (utrustning, blå) och `env` (väder, gröna) utan spelare.
+  - `pierce`: kortets anfall går igenom motståndarens försvar. `fire` (Eldboll): nästa anfall gör det. `strike` (Åskväder): deras försvar blir 0.
+  - `fx: { turns, atk, mur, opp, guard, energy, weather }` gäller nu och vid varje turstart tills `turns` tar slut. Bara ett väder åt gången.
+  - De nya korten finns bara i cuper. Kompismatchens draft har egna fasta listor i `vsPacks`.
 - **Sällsynthet** (`r`): start, vanlig, sällsynt, episk, legendarisk.
   - Episka kort har lila holo-ram.
   - Legendariska kort är sex United-legender i svart och guld, ungefär var femte cup.
@@ -59,7 +65,9 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 - Motståndarens drag kommer från `rollIntent()`. Anfall: `rnd(3+2s, 6+3s)` per omgång s = 0–5.
 - I finalen är vanliga anfall 11–15, och superanfallet 18–22 kommer var tredje tur. Superanfallet ska alltid vara starkast.
 - Mål kräver `12 + 2s` målchans för United och 12 för motståndaren.
-- Simulerat: en smart spelare med 85 % rätt vinner cirka 83 % av cuperna (`tests/sim-balance.js`).
+- Simulerat: en smart spelare med 85 % rätt vinner cirka 83 % av cuperna (`tests/sim-balance.js`), både före och efter utrustnings- och väderkorten (83,0 → 83,6 %).
+- `sim-balance.js` läser `CARDS` och `POOL` ur `index.html` men kopierar matchreglerna. Ändras en regel i spelet måste den ändras där också.
+- Nya kort värderas genom att tvinga in kortet i första belöningen och jämföra cupvinsten med de gamla korten i samma sällsynthet. Förstärkningskort som kostar energi blir svaga med 3 energi per tur, därför kostar Stormvind 0 och Åskväder 1.
 
 ## Kompismatch (VS)
 
@@ -80,7 +88,7 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 cd tests
 npm install
 npx playwright install chromium
-npm test             # mattetalen, alla avsnitt i UI, superanfall, mobil, kompismatch med två spelare
+npm test             # mattetalen, alla avsnitt i UI, superanfall, flera mål per tur, mobil (Skjut-knappen syns), bibliotek och troféer, kompismatch med två spelare
 npm run test:cup     # hela cuper i alla tre ligorna (tar några minuter)
 npm run sim:balance  # cupvinst per strategi och träffsäkerhet
 npm run sim:vs       # balans i kompismatch

@@ -23,6 +23,8 @@ for (const s of C.CURRICULUM){
       if (!p.q) flag(s.code, d, 'empty q', p);
       if (!p.steps.length) flag(s.code, d, 'no steps', p);
       if (!p.hint) flag(s.code, d, 'no hint', p);
+      const place = /^Vilket värde har siffran <b>(\d)<\/b> i talet <b>([^<]+)<\/b>\?$/.exec(p.q);
+      if (place && place[2].split(place[1]).length > 2) flag(s.code, d, 'ambiguous digit', p);
       if (p.kind === 'choice'){
         if (p.correct < 0) flag(s.code, d, 'correct missing', p);
         if (new Set(p.choices).size !== p.choices.length) flag(s.code, d, 'dup choices', p);
