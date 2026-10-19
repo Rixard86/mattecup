@@ -81,12 +81,17 @@ const score = pg => pg.evaluate(() => M && { me:M.myGoals, opp:M.oppGoals, mc:M.
   // 1) hel match med kort
   const code = await setup(A, B, { name:'Ville', league:'CL', level:1, kit:'white' }, { name:'Elias<b>', league:'PL', level:0, kit:'yellow' });
   console.log('match 1 code', code);
+  await A.evaluate(() => { M.hand.unshift('mbeumo2', 'thunder'); render(); });
+  await B.evaluate(() => { M.hand.unshift('iceball', 'mount2'); render(); });
   await A.screenshot({ path:'vs/A_turn1.png' }); await B.screenshot({ path:'vs/B_turn1.png' });
   const [ra, rb] = await Promise.all([playTurns(A, 'cards', .85), playTurns(B, 'cards', .75)]);
   await sleep(800);
   const sa = await score(A), sb = await score(B);
   console.log('A', JSON.stringify(sa)); console.log('B', JSON.stringify(sb));
   console.log('CONSISTENT', sa.me === sb.opp && sa.opp === sb.me && ({ win:'lose', lose:'win', draw:'draw' })[sa.result] === sb.result);
+  const turnsA = await A.evaluate(() => JSON.stringify(VS.myP.turns)), seenByB = await B.evaluate(() => JSON.stringify(VS.oppP.turns));
+  const usedA = await A.evaluate(() => VS.myP.turns.some(t => t.thru || t.crack)), usedB = await B.evaluate(() => VS.myP.turns.some(t => t.thru || t.crack));
+  console.log('NEW CARDS', usedA && usedB && turnsA === seenByB, 'genomslag/spräckt mur A', usedA, 'B', usedB, 'via servern', turnsA === seenByB);
   await A.screenshot({ path:'vs/A_end.png' }); await B.screenshot({ path:'vs/B_end.png' });
   // 2) ingen spelar kort -> 0-0 -> straffar
   await A.tapOrClick('[data-act=vsAgain]'); await B.tapOrClick('[data-act=vsAgain]');

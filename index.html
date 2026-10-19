@@ -1103,7 +1103,7 @@ function describe(c){
   if (c.buff) p.push(`nästa anfall +${c.buff}${c.fire ? ' genom försvaret' : ''}`);
   if (c.rally) p.push(`alla anfall +${c.rally} denna tur`);
   if (c.pierce) p.push('genom försvaret');
-  if (c.strike) p.push('försvar 0');
+  if (c.strike) p.push(typeof VS !== 'undefined' && VS ? `deras mur −${VS_STRIKE}` : 'försvar 0');
   if (c.fx) p.push(`${fxSpan(c.fx)}: ${fxText(c.fx)}`);
   return p.join(', ');
 }
@@ -1700,7 +1700,7 @@ function applyCard(c, res){
   if (atk) M.pierce = false;
   if (c.fire) M.pierce = true;
   if (c.fx) addFx(c, ok);
-  if (c.strike) M.oppGuard = 0;
+  if (c.strike){ if (M.vs) M.crackTurn += VS_STRIKE; else M.oppGuard = 0; }
   // i kompismatch samlas anfallet och möter kompisens mur först när båda avslutat turen
   const absorbed = atk && !M.vs && !pierce ? Math.min(M.oppGuard, atk) : 0;
   let chance = M.myChance + (M.vs ? 0 : atk - absorbed), goals = 0;
@@ -1714,11 +1714,11 @@ function applyCard(c, res){
   fieldCard(M.vs && SHOTS.includes(c.name) ? { ...c, name:'Passning' } : c, { atk:M.vs ? 0 : atk, absorbed, goals, def, fire:fired, onGoal:goalTick(true, m0) }, () => {
     if (M !== m0) return;
     if (def) M.mur += def;
-    if (atk && M.vs) M.atkTurn += atk;
+    if (atk && M.vs){ if (pierce) M.thruTurn += atk; else M.atkTurn += atk; }
     else if (atk){ M.oppGuard -= absorbed; M.myChance = chance; }
     render();
     if (def){ floatAt(`+${def} mur`, '#murBox', 'blue'); sfx('block'); }
-    if (atk && M.vs) floatAt(`+${atk} anfall`, '#atkBox', 'gold');
+    if (atk && M.vs) floatAt(`+${atk} ${pierce ? 'genom muren' : 'anfall'}`, '#atkBox', 'gold');
     else if (atk){ if (absorbed) floatAt(`−${absorbed} stoppat`, '#guardBox', 'red'); if (atk - absorbed > 0) floatAt(`+${atk - absorbed} målchans`, '#meterMe', 'gold'); }
   }, () => { if (M !== m0) return; busy = false; render(); });
 }
@@ -2395,6 +2395,8 @@ const SCREENS = {
     if (m.rally) tags.push(`<span class="tag">Alla anfall +${m.rally} denna tur</span>`);
     if (m.pierce) tags.push('<span class="tag fx">Eldboll: nästa anfall går igenom försvaret</span>');
     tags.push(...fxTags());
+    if (vs && m.thruTurn) tags.push(`<span class="tag fx">${m.thruTurn} anfall går igenom muren</span>`);
+    if (vs && m.crackTurn) tags.push(`<span class="tag fx">Kompisens mur −${m.crackTurn}</span>`);
     if (has('coach') && !m.retryUsed) tags.push('<span class="tag">Tränaren ger en extra chans</span>');
     if (vs && m.phase !== 'done') tags.push(`<button class="chip" data-act="vsLeave">${vsLeaveArmed ? 'Tryck igen för att lämna' : 'Lämna matchen'}</button>`);
     return `<section class="screen match" style="--opp:${o.color};--oppfill:${meterFill(o.color)}">
@@ -2411,7 +2413,7 @@ const SCREENS = {
           ${weatherOf() ? `<div class="weather w-${weatherOf()}" aria-hidden="true"></div>` : ''}
           <div class="wall mine${m.mur ? '' : ' off'}" id="murBox" data-act="info" data-k="${vs ? 'vs' : 'mur'}"><b>${m.mur}</b><span>${vs ? 'Din mur' : 'Unitedmur'}</span><i>?</i></div>
           ${vs ? `<div class="wall theirs${m.reveal ? '' : ' off'}" id="guardBox" data-act="info" data-k="vs"><b>${m.reveal ? m.oppGuard : '?'}</b><span>${o.short}-mur</span><i>?</i></div>
-          <div class="wall atk${m.atkTurn ? '' : ' off'}" id="atkBox" data-act="info" data-k="vs"><b>${m.atkTurn}</b><span>Ditt anfall</span><i>?</i></div>`
+          <div class="wall atk${m.atkTurn || m.thruTurn ? '' : ' off'}" id="atkBox" data-act="info" data-k="vs"><b>${m.atkTurn + (m.thruTurn || 0)}</b><span>Ditt anfall</span><i>?</i></div>`
           : `<div class="wall theirs${m.oppGuard ? '' : ' off'}" id="guardBox" data-act="info" data-k="guard"><b>${m.oppGuard}</b><span>${o.short}-försvar</span><i>?</i></div>`}
           ${vs && m.phase === 'play' ? `<div class="intent vsbox" id="intent" data-act="info" data-k="vs"><div id="vsOpp">${vsOppHTML(m)}</div></div>` : ''}
           ${!vs && m.phase === 'play' ? `<div class="intent${it.label === 'Superanfall' ? ' super' : ''}" id="intent" data-act="info" data-k="intent"><span class="eyebrow">${o.name} ${it.label.toLowerCase()}</span>
@@ -2672,7 +2674,7 @@ function info(k){
 // Båda spelar samtidigt på var sin enhet. Varje tur skickar man sitt anfall och sin mur till servern (api/vs).
 // När båda avslutat turen räknar båda enheterna fram samma resultat: anfall minus kompisens mur fyller målchansen.
 const VS_KEY = 'unitedMattecup.vs';
-const VS_TURNS = 6, VS_THR = 12, VS_PENS = 3, VS_PENS_MAX = 8;
+const VS_TURNS = 6, VS_THR = 12, VS_PENS = 3, VS_PENS_MAX = 8, VS_STRIKE = 5;
 const VS_KITS = {
   blue:  { name:'Blå',   color:'#1f5fd6', text:'#ffffff' },
   white: { name:'Vit',   color:'#f2f4f8', text:'#132257' },
@@ -2789,18 +2791,24 @@ function vsRng(seed){
 function vsPacks(code){
   const r = vsRng('mattecup-draft-' + code), pk = a => a[Math.floor(r() * a.length)];
   const mix = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const atk1 = pk(['sesko', 'shaw']), ex1 = pk(['amad', 'dorgu']);
+  const D = VS_DRAFT, atk = mix(D.atk), def = mix(D.def), ex = mix(D.ex), star = mix(D.epic).slice(0, VS_PACK);
   return [
-    { name:'Vanliga kort',   cards:mix([atk1, 'heaven', ex1]) },
-    { name:'Vanliga kort',   cards:mix([atk1 === 'sesko' ? 'shaw' : 'sesko', 'mazraoui', ex1 === 'amad' ? 'dorgu' : 'amad']) },
-    { name:'Sällsynta kort', cards:mix([pk(['rashford', 'cunha', 'tielemans']), pk(['deligt', 'lammens']), 'bruno']) },
+    { name:'Vanliga kort',   cards:mix([atk[0], def[0], ex[0]]) },
+    { name:'Vanliga kort',   cards:mix([atk[1], def[1], ex[1]]) },
+    { name:'Sällsynta kort', cards:mix([pk(D.rareAtk), pk(D.rareDef), pk(D.rareEx)]) },
     // 10 % chans att en legend ersätter ett av de episka korten (samma för båda spelarna)
-    { name:'Stjärnvalet',    cards:r() < .1 ? mix(mix(['zirkzee', 'lammens2', 'baleba']).slice(0, 2).concat(pk(POOL.legend))) : mix(['zirkzee', 'lammens2', 'baleba']) },
+    { name:'Stjärnvalet',    cards:r() < VS_LEGEND_CHANCE ? mix(star.slice(0, VS_PACK - 1).concat(pk(POOL.legend))) : star },
   ];
 }
+const VS_PACK = 3, VS_LEGEND_CHANCE = .1;
+const VS_DRAFT = {
+  atk:['sesko', 'shaw', 'mount2', 'amad2'], def:['heaven', 'mazraoui', 'ugarte2', 'maguire2'], ex:['amad', 'dorgu', 'glue', 'speed', 'rain'],
+  rareAtk:['rashford', 'cunha', 'tielemans', 'mbeumo2', 'bruno2'], rareDef:['deligt', 'lammens', 'martinez2', 'yoro2'], rareEx:['bruno', 'fireball', 'iceball', 'wind'],
+  epic:['zirkzee', 'lammens2', 'baleba', 'thunder'],
+};
 const VS_ROUNDS = 4;
 function vsRole(c){
-  if (c.kind === 'skill') return 'Extra';
+  if (c.kind === 'skill' || isTool(c)) return 'Extra';
   if (c.kind === 'def') return c.atk ? 'Försvar + anfall' : c.draw ? 'Försvar + kort' : 'Försvar';
   if (c.def) return 'Anfall + försvar';
   if (c.energy) return 'Anfall + energi';
@@ -2828,11 +2836,12 @@ function vsTeam(s){
   // kompisen själv står i mål hos motståndarlaget
   return { name, short, color:k.color, text:k.text, players:[[1, name], ...VS_SQUAD.slice(1)], stage:'Kompismatch', blurb:'', boss:false };
 }
+const vsThrough = (a, b) => Math.max(0, a.atk - Math.max(0, b.mur - (a.crack || 0))) + (a.thru || 0);
 function vsTally(n){
   const a = VS.myP.turns, b = VS.oppP ? VS.oppP.turns : [];
   let mc = 0, oc = 0, mg = 0, og = 0;
   for (let i = 0; i < n; i++){
-    mc += Math.max(0, a[i].atk - b[i].mur); oc += Math.max(0, b[i].atk - a[i].mur);
+    mc += vsThrough(a[i], b[i]); oc += vsThrough(b[i], a[i]);
     while (mc >= VS_THR){ mc -= VS_THR; mg++; }
     while (oc >= VS_THR){ oc -= VS_THR; og++; }
   }
@@ -2845,7 +2854,7 @@ function vsStartMatch(resume){
         right:v.myP.r || 0, total:v.myP.n || 0, opps:[team], offer:null, relicOffer:null, unlocked:null };
   M = { vs:true, opp:team, turn:1, maxTurns:VS_TURNS, energyMax:3, energy:3, hand:[], draw:shuffle(R.deck), discard:[],
         mur:0, myChance:0, oppChance:0, myGoals:0, oppGoals:0, oppGuard:0, intent:{ atk:0, def:0, label:'' }, buffNext:0, rally:0, streak:0,
-        retryUsed:false, phase:'play', thrMe:VS_THR, thrOpp:VS_THR, pens:null, result:null, atkTurn:0, waiting:false, reveal:false, oppReveal:null };
+        retryUsed:false, phase:'play', thrMe:VS_THR, thrOpp:VS_THR, pens:null, result:null, atkTurn:0, thruTurn:0, crackTurn:0, fx:[], pierce:false, waiting:false, reveal:false, oppReveal:null };
   busy = false; vsLeaveArmed = false;
   fieldInit(team); F.loop++; F.running = false;
   vsSave();
@@ -2861,21 +2870,22 @@ function vsStartMatch(resume){
   if (!(save.seen && save.seen.vs)){ save.seen = Object.assign(save.seen || {}, { vs:true }); persist(); setTimeout(() => { if (M && M.vs && !P) info('vs'); }, 700); }
 }
 function vsStartTurn(){
-  M.energy = M.energyMax; M.mur = 0; M.rally = 0; M.atkTurn = 0; M.oppGuard = 0; M.waiting = false; M.reveal = false;
+  M.energy = M.energyMax; M.mur = 0; M.rally = 0; M.atkTurn = 0; M.thruTurn = 0; M.crackTurn = 0; M.oppGuard = 0; M.waiting = false; M.reveal = false;
+  vsFxTurnStart();
   drawCards(5); F.oppDrop = 0; render();
 }
 function vsEndTurn(){
   if (busy || !M || M.phase !== 'play' || M.waiting) return;
   M.discard.push(...M.hand); M.hand = [];
-  VS.myP.turns[M.turn - 1] = { atk:M.atkTurn, mur:M.mur }; VS.myP.r = R.right; VS.myP.n = R.total;
+  VS.myP.turns[M.turn - 1] = { atk:M.atkTurn, mur:M.mur, thru:M.thruTurn, crack:M.crackTurn }; fxTurnEnd(); VS.myP.r = R.right; VS.myP.n = R.total;
   M.waiting = true; vsLeaveArmed = false; sfx('tap');
   vsSave(); vsPush(); render(); vsUpdate(); vsPollSoon(500);
 }
 function vsResolve(){
   const v = VS, t = M.turn, mine = v.myP.turns[t - 1], theirs = v.oppP.turns[t - 1];
   const before = vsTally(t - 1), after = vsTally(t);
-  const myThrough = Math.max(0, mine.atk - theirs.mur), oppThrough = Math.max(0, theirs.atk - mine.mur);
-  busy = true; M.waiting = false; M.reveal = true; M.oppReveal = theirs; M.oppGuard = theirs.mur; F.oppDrop = theirs.mur ? .06 : 0;
+  const myThrough = vsThrough(mine, theirs), oppThrough = vsThrough(theirs, mine), mineAtk = mine.atk + (mine.thru || 0), theirAtk = theirs.atk + (theirs.thru || 0);
+  busy = true; M.waiting = false; M.reveal = true; M.oppReveal = theirs; M.oppGuard = Math.max(0, theirs.mur - (mine.crack || 0)); F.oppDrop = M.oppGuard ? .06 : 0;
   render(); sfx('whistle');
   const el = document.getElementById('intent'); if (el) el.classList.add('pulse');
   const m0 = M;
@@ -2887,23 +2897,23 @@ function vsResolve(){
   };
   const step2 = () => {
     if (M !== m0) return;
-    if (!theirs.atk){ floatAt(`${v.opp.name} anföll inte`, '.pitch', 'green'); setTimeout(step3, 1000); return; }
-    fieldEnemy({ atk:theirs.atk, def:0, dmg:oppThrough, goals:after.og - before.og, label:'Anfaller', onGoal:goalTick(false, m0) }, () => {
+    if (!theirAtk){ floatAt(`${v.opp.name} anföll inte`, '.pitch', 'green'); setTimeout(step3, 1000); return; }
+    fieldEnemy({ atk:theirAtk, def:0, dmg:oppThrough, goals:after.og - before.og, label:'Anfaller', onGoal:goalTick(false, m0) }, () => {
       if (M !== m0) return;
       M.oppChance = after.oc; M.oppGoals = before.og; render();
-      const blocked = theirs.atk - oppThrough;
+      const blocked = theirAtk - oppThrough;
       if (blocked){ floatAt(`${blocked} stoppat!`, '#murBox', 'blue'); sfx('block'); }
       if (oppThrough) floatAt(`+${oppThrough}`, '#meterOpp', 'red'); else floatAt('Inget farligt!', '.pitch', 'green');
     }, step3);
   };
   setTimeout(() => {
     if (M !== m0) return;
-    if (!mine.atk){ step2(); return; }
+    if (!mineAtk){ step2(); return; }
     const sh = pick(VS_SHOOTERS);
-    fieldCard({ kind:'atk', name:'Skott', player:sh[1], num:sh[0], icon:'ball' }, { atk:mine.atk, absorbed:mine.atk - myThrough, goals:after.mg - before.mg, def:0, onGoal:goalTick(true, m0) }, () => {
+    fieldCard({ kind:'atk', name:'Skott', player:sh[1], num:sh[0], icon:'ball' }, { atk:mineAtk, absorbed:mineAtk - myThrough, goals:after.mg - before.mg, def:0, onGoal:goalTick(true, m0) }, () => {
       if (M !== m0) return;
       M.myChance = after.mc; M.myGoals = before.mg; M.oppGuard = 0; render();
-      const stopped = mine.atk - myThrough;
+      const stopped = mineAtk - myThrough;
       if (stopped) floatAt(`−${stopped} stoppat`, '#guardBox', 'red');
       if (myThrough) floatAt(`+${myThrough} målchans`, '#meterMe', 'gold');
     }, step2);

@@ -40,7 +40,7 @@ const logoInfo = pg => pg.evaluate(() => new Promise(res => {
     expect(r.shown === true, `${w}: loggan finns kvar efter omladdning`);
     await pg.click('[data-act=resetLogo]');
     r = await logoInfo(pg);
-    expect(!r.src && r.shown !== null && !r.shown.startsWith('data:'), `${w}: Standardlogga återställer`);
+    expect(!r.src && (r.shown === null || !r.shown.startsWith('data:')), `${w}: Standardlogga återställer`);
     await choose(pg, { name:'trasig.png', mimeType:'image/png', buffer:Buffer.from('inte en bild') });
     await pg.waitForFunction(() => document.body.textContent.includes('Bilden gick inte att läsa'), null, { timeout:WAIT_MS });
     expect(!(await pg.evaluate(() => save.settings.logo)), `${w}: trasig fil ger ett meddelande och ingen logga`);

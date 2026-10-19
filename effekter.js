@@ -30,8 +30,14 @@ function addFx(c, ok){
   M.fx.push(f);
   M.mur += f.mur || 0;
   M.energy += f.energy || 0;
+  if (M.vs){ M.mur += f.opp || 0; M.crackTurn += f.guard || 0; return; }
   if (M.intent) M.intent.atk = Math.max(0, M.intent.atk - (f.opp || 0));
   M.oppGuard = Math.max(0, M.oppGuard - (f.guard || 0));
+}
+function vsFxTurnStart(){
+  M.mur += fxSum('mur') + fxSum('opp');
+  M.energy += fxSum('energy');
+  M.crackTurn += fxSum('guard');
 }
 function fxTurnStart(){
   M.mur += fxSum('mur');

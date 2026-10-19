@@ -40,7 +40,7 @@ function cleanProgress(d){
   d = d && typeof d === 'object' ? d : {};
   const turns = Array.isArray(d.turns) ? d.turns : [];
   return {
-    turns: turns.slice(0, 8).map(t => ({ atk: int(t && t.atk, 300), mur: int(t && t.mur, 300) })),
+    turns: turns.slice(0, 8).map(t => ({ atk: int(t && t.atk, 300), mur: int(t && t.mur, 300), thru: int(t && t.thru, 300), crack: int(t && t.crack, 300) })),
     pens: (Array.isArray(d.pens) ? d.pens : []).slice(0, 12).map(Boolean),
     picks: (Array.isArray(d.picks) ? d.picks : []).slice(0, 6).map(String).filter(x => /^[a-z0-9_]{1,16}$/.test(x)),
     ready: !!d.ready, quit: !!d.quit, r: int(d.r, 500), n: int(d.n, 500),

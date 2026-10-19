@@ -57,7 +57,7 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 - **Korttyper** (`kind`): `atk`, `def`, `skill`, samt `gear` (utrustning, blå) och `env` (väder, gröna) utan spelare.
   - `pierce`: kortets anfall går igenom motståndarens försvar. `fire` (Eldboll): nästa anfall gör det. `strike` (Åskväder): deras försvar blir 0.
   - `fx: { turns, atk, mur, opp, guard, energy, weather }` gäller nu och vid varje turstart tills `turns` tar slut. Bara ett väder åt gången.
-  - De nya korten finns bara i cuper. Kompismatchens draft har egna fasta listor i `vsPacks`.
+  - Kompismatchens draft hämtar kort ur `VS_DRAFT`. Skott i krysset och Dimma finns bara i cuper (de gjorde rent anfall för starkt i kompismatch).
 - **Sällsynthet** (`r`): start, vanlig, sällsynt, episk, legendarisk.
   - Episka kort har lila holo-ram.
   - Legendariska kort är sex United-legender i svart och guld, ungefär var femte cup.
@@ -74,7 +74,9 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 
 ## Kompismatch (VS)
 
-- **Samtidiga turer:** varje spelare skickar `{atk, mur}` per tur. Båda enheterna räknar samma resultat med `vsTally(n)`: anfall minus kompisens mur, 12 = mål.
+- **Samtidiga turer:** varje spelare skickar `{atk, mur, thru, crack}` per tur. Båda enheterna räknar samma resultat med `vsTally(n)` och `vsThrough`: `max(0, atk − max(0, kompisens mur − crack)) + thru`, 12 = mål. Servern (`cleanProgress` i `api/vs.js`) måste släppa igenom alla fyra fälten, annars räknar enheterna olika. Uppdatera Synology-kopian samtidigt med Vercel.
+  - Genomslagskort och Eldboll ger `thru`. Dimma/försvar minus ger `crack`, Åskväder ger `crack` +`VS_STRIKE` (5). "Deras anfall −X" (Isboll, Regn) blir +X mur.
+  - Balans (`npm run sim:vs`): lika spelare vinner lika ofta, anfall mot blandat 38/33 % (före de nya korten 33/40 %), 95 % mot 70 % rätt vinner 70/8 %.
 - **Redis** (TTL 3 h):
   - `vs:KOD:s0|s1`: platser med token, skapade med SET NX.
   - `vs:KOD:p0|p1`: varje spelares framsteg.
