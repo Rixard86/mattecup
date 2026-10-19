@@ -1226,11 +1226,11 @@ const CURRICULUM = [...ALFA, ...BETA, ...GAMMA];
 const SECTIONS = {}; CURRICULUM.forEach(s => { SECTIONS[s.code] = s; });
 
 const LEAGUE_DEFS = [
-  { id:'PL', name:'Premier League', book:'Alfa', color:'#3d195b', accent:'#00ff85',
+  { id:'PL', name:'Premier League', book:'Alfa', grade:'åk 4', color:'#3d195b', accent:'#00ff85',
     levels:[{ name:'Lätt', from:'A1.1', to:'A2.6' }, { name:'Medel', from:'A3.1', to:'A4.5' }, { name:'Svår', from:'A5.1', to:'A6.4' }] },
-  { id:'CL', name:'Champions League', book:'Beta', color:'#0b1f63', accent:'#8ec5ff',
+  { id:'CL', name:'Champions League', book:'Beta', grade:'åk 5', color:'#0b1f63', accent:'#8ec5ff',
     levels:[{ name:'Lätt', from:'B1.1', to:'B2.6' }, { name:'Medel', from:'B3.1', to:'B4.5' }, { name:'Svår', from:'B5.1', to:'B6.4' }] },
-  { id:'SL', name:'Special League', book:'Gamma', color:'#0f5e4f', accent:'#ffd84d',
+  { id:'SL', name:'Special League', book:'Gamma', grade:'åk 6', color:'#0f5e4f', accent:'#ffd84d',
     levels:[{ name:'Lätt', from:'G1.1', to:'G2.7' }, { name:'Medel', from:'G3.1', to:'G3.7' }, { name:'Svår', from:'G4.1', to:'G4.6' }] },
 ];
 function levelSections(leagueId, lvl){

@@ -427,7 +427,7 @@ p{margin:0}
 .method p{color:var(--muted);font-size:15px;margin-top:4px}
 .skilltable{width:100%;border-collapse:collapse;font-size:15px}
 .skilltable th,.skilltable td{padding:8px 6px;text-align:left;border-bottom:1px solid rgba(255,255,255,.1)}
-.skilltable td.n{text-align:right;font-variant-numeric:tabular-nums}
+.skilltable .n{text-align:right;font-variant-numeric:tabular-nums}
 .mast{display:flex;gap:3px}
 .mast i{width:12px;height:12px;border-radius:3px;background:rgba(255,255,255,.15)}
 .mast i.on{background:var(--good)}
@@ -484,7 +484,6 @@ p{margin:0}
 .lvl.locked{opacity:.45}
 .lvtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .lvtop b{font:400 18px var(--font-display);color:var(--la)}
-.lvrange{font-size:13px;color:var(--muted);white-space:nowrap}
 .lvtopics{font-size:14px;color:var(--muted);font-weight:700}
 .lvstate{font-size:14px;font-weight:900}
 .lvl.won .lvstate{color:var(--gold)}
@@ -834,6 +833,7 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
 <body>
 <div id="app"></div>
 <div id="modal" hidden></div>
+<input type="file" id="logoFile" accept="image/*" hidden>
 <div id="fx"></div>
 
 <script src="online-config.js"></script>
@@ -841,6 +841,7 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
 <script src="teams.js"></script>
 <script src="samling.js"></script>
 <script src="effekter.js"></script>
+<script src="dagens.js"></script>
 <script>
 'use strict';
 /* =========================================================
@@ -955,7 +956,7 @@ function defaultSave(){
   const skills = {}; CURRICULUM.forEach(s => skills[s.code] = { box:1, last:-99, right:0, wrong:0, help:0 });
   const prog = {}; LEAGUE_IDS.forEach(l => prog[l] = { open:1, won:[false, false, false] });
   return { skills, prog, counter:0, stats:{ runs:0, cups:0, right:0, total:0 }, settings:{ sound:true, clock:true }, run:null,
-    lib:{ cards:[], relics:[], teams:[] }, trophies:{} };
+    lib:{ cards:[], relics:[], teams:[] }, trophies:{}, days:{}, daily:{ last:'', streak:0, best:0 } };
 }
 function loadSave(){
   const def = defaultSave();
@@ -1077,6 +1078,20 @@ function contrastOf(a, b){ const x = lumOf(a), y = lumOf(b); return (Math.max(x,
 function meterFill(hex){ return LIGHTEN_STEPS.map(t => lighten(hex, t)).find(c => contrastOf(c, METER_TRACK) >= MIN_METER_CONTRAST); }
 const badge = (cls = '') => `<span class="badge ${cls}">${LOGO_OK ? `<img src="logo.png" alt="${CLUB.name}">` : '<span class="fallback">MU</span>'}</span>`;
 (() => { const im = new Image(); im.onload = () => { LOGO_OK = true; if (typeof render === 'function') render(); }; im.src = 'logo.png'; })();
+const LOGO_SIZE = 256;
+const titleBadge = () => save.settings.logo ? `<span class="badge"><img src="${save.settings.logo}" alt="Egen logga"></span>` : badge();
+function loadLogo(file){
+  const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = () => {
+    const k = Math.min(1, LOGO_SIZE / img.width, LOGO_SIZE / img.height), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    save.settings.logo = c.toDataURL('image/png'); persist(); render(); toast('Ny logga!');
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); toast('Bilden gick inte att läsa.'); };
+  img.src = url;
+}
 
 /* ---------- cards ---------- */
 function describe(c){
@@ -2244,6 +2259,7 @@ function record(id, ok, helped){
   if (ok){ k.right++; k.last = save.counter; if (helped) k.help++; else k.box = Math.min(5, k.box + 1); }
   else { k.wrong++; k.box = Math.max(1, k.box - 2); k.last = save.counter - SPACING[k.box]; }
   save.stats.total++; if (ok) save.stats.right++;
+  noteDay(id, ok);
   if (R){ R.total++; if (ok) R.right++; }
   persist();
   checkTrophies();
@@ -2305,18 +2321,19 @@ const SCREENS = {
     const r = save.run, st = save.stats;
     const opened = LEAGUE_IDS.reduce((a, l) => a + save.prog[l].open, 0), won = LEAGUE_IDS.reduce((a, l) => a + save.prog[l].won.filter(Boolean).length, 0);
     return `<section class="screen scroll"><div class="title-wrap">
-      <div class="title-badge">${badge()}</div>
-      <p class="eyebrow">${CLUB.name} · ${CLUB.ground}</p>
+      <div class="title-badge">${titleBadge()}</div>
       <h1 class="logo"><span>United</span><span>Mattecup</span></h1>
       <p class="lede">Bygg din trupp, räkna smart och för United till titeln i tre ligor.</p>
       <div class="menu">
         ${r ? `<button class="btn big gold" data-act="continueRun">Fortsätt cupen<small>${leagueOf(r.league).name} · ${levelName(r.league, r.level)} · ${r.opps[r.stage].stage}</small></button>` : ''}
         <button class="btn big ${r ? 'red' : 'gold'}" data-act="leagues">${r ? 'Välj ny liga' : 'Välj liga'}</button>
         ${vsSession() ? `<button class="btn big gold" data-act="vsResume">Tillbaka till kompismatchen<small>Kod ${esc(vsSession().code)}${vsSession().opp ? ` mot ${esc(vsSession().opp.name)}` : ''}</small></button>` : ''}
+        ${dailyButtonHTML()}
         <button class="btn big" data-act="vs">Utmana en kompis<small>Onlinematch – var sin skärm</small></button>
         <div class="row"><button class="btn" data-act="library">Bibliotek</button><button class="btn" data-act="trophies">Troféer ${trophyCount()}/${TROPHIES.length}</button></div>
         <div class="row"><button class="btn" data-act="train">Träning</button><button class="btn" data-act="howto">Så spelar du</button><button class="btn" data-act="adults">För vuxna</button></div>
         <div class="row"><button class="chip" data-act="toggleSound">Ljud: ${save.settings.sound ? 'på' : 'av'}</button><button class="chip" data-act="toggleClock">Snabbklocka: ${save.settings.clock ? 'på' : 'av'}</button></div>
+        <div class="row"><button class="chip" data-act="pickLogo">Byt logga</button>${save.settings.logo ? '<button class="chip" data-act="resetLogo">Standardlogga</button>' : ''}</div>
       </div>
       <div class="shelf">
         <div class="stat"><b>${won}</b><span>Vunna nivåer av 9</span></div>
@@ -2330,16 +2347,16 @@ const SCREENS = {
     const r = save.run;
     return `<section class="screen scroll"><div class="wrap">
       <header class="topbar"><button class="btn ghost" data-act="home">Meny</button></header>
-      <div><p class="eyebrow">Matematik Alfa, Beta och Gamma</p><h2 class="h2">Välj liga och nivå</h2></div>
+      <div><p class="eyebrow">Årskurs 4, 5 och 6</p><h2 class="h2">Välj liga och nivå</h2></div>
       ${r ? `<p class="muted">Du har en pågående cup i ${leagueOf(r.league).name}. Startar du en ny ersätts den.</p>` : ''}
       <div class="leagues">${LEAGUE_DEFS.map(L => {
         const pg = save.prog[L.id];
         return `<article class="league" style="--lc:${L.color};--la:${L.accent}">
-          <header><p class="eyebrow">Matematik ${L.book} · ${TEAMS[L.id].length} lag</p><h3>${L.name}</h3></header>
+          <header><p class="eyebrow">${L.grade} · ${TEAMS[L.id].length} lag</p><h3>${L.name}</h3></header>
           <div class="lvls">${L.levels.map((lv, i) => {
             const locked = i >= pg.open, wonL = pg.won[i], secs = levelSections(L.id, i);
             return `<button class="lvl${locked ? ' locked' : ''}${wonL ? ' won' : ''}" data-act="startLeague" data-l="${L.id}" data-v="${i}" ${locked ? 'aria-disabled="true"' : ''}>
-              <span class="lvtop"><b>${lv.name}</b><span class="lvrange">${levelRange(L.id, i)}</span></span>
+              <span class="lvtop"><b>${lv.name}</b></span>
               <span class="lvtopics">${secs.slice(0, 4).map(x => x.name).join(' · ')}${secs.length > 4 ? ' …' : ''}</span>
               <span class="lvstate">${locked ? `Låst – vinn ${L.levels[i - 1].name} först` : wonL ? 'Vunnen ★' : 'Spela'}</span>
             </button>`; }).join('')}</div>
@@ -2463,7 +2480,7 @@ const SCREENS = {
       <header class="topbar"><button class="btn ghost" data-act="home">Meny</button><span class="tag">${train.right} rätt av ${train.count} · ${train.streak} i rad</span></header>
       <div><p class="eyebrow">Carrington-träning</p><h2 class="h2">Träna ett avsnitt</h2></div>
       <p class="muted">Ingen klocka här. Svårigheten ökar när du får två rätt i rad. Tryck Tillbaka för att sluta.</p>
-      <div class="tabs" role="tablist">${LEAGUE_DEFS.map(x => `<button class="tab${x.id === train.league ? ' on' : ''}" role="tab" aria-selected="${x.id === train.league}" data-act="trainLeague" data-l="${x.id}">${x.name} <small>${x.book}</small></button>`).join('')}</div>
+      <div class="tabs" role="tablist">${LEAGUE_DEFS.map(x => `<button class="tab${x.id === train.league ? ' on' : ''}" role="tab" aria-selected="${x.id === train.league}" data-act="trainLeague" data-l="${x.id}">${x.name} <small>${x.grade}</small></button>`).join('')}</div>
       ${L.levels.map((lv, i) => `<div class="panelbox"><h3>${lv.name} · ${levelRange(L.id, i)} <button class="chip" data-act="trainMix" data-v="${i}">Blandat</button></h3>
         <div class="seclist">${levelSections(L.id, i).map(sc => { const k = save.skills[sc.code];
           return `<button class="sec" data-act="trainSec" data-c="${sc.code}"><span class="scode">${secLabel(sc.code)}</span><span class="sname">${sc.name}</span><span class="mast">${[1,2,3,4,5].map(n => `<i class="${n <= k.box ? 'on' : ''}"></i>`).join('')}</span></button>`; }).join('')}</div></div>`).join('')}
@@ -2473,6 +2490,7 @@ const SCREENS = {
     </div></section>`;
   },
   library(){ return libraryHTML(); },
+  dailyDone(){ return dailyDoneHTML(); },
   trophies(){ return trophiesHTML(); },
   howto(){
     return `<section class="screen scroll"><div class="wrap">
@@ -2480,7 +2498,7 @@ const SCREENS = {
       <div class="prose">
         <h2 class="h2">Så spelar du</h2>
         <h3>Ligorna</h3>
-        <ul><li><b>Premier League</b> har tal från Matematik Alfa, <b>Champions League</b> från Beta och <b>Special League</b> från Gamma.</li>
+        <ul><li><b>Premier League</b> har tal för åk 4, <b>Champions League</b> för åk 5 och <b>Special League</b> för åk 6.</li>
           <li>Special League har klubbar från hela världen och alla lag i Allsvenskan – varje cup har ett svenskt lag, ibland två.</li>
           <li>Varje liga har tre nivåer: Lätt, Medel och Svår. Vinn cupen på en nivå för att låsa upp nästa.</li>
           <li>Motståndarna lottas varje gång – från de svagaste lagen i början till de bästa i finalen.</li></ul>
@@ -2525,7 +2543,7 @@ const SCREENS = {
     </div></section>`;
   },
   adults(){
-    const table = L => `<details class="rep"${L.id === 'PL' ? ' open' : ''}><summary>${L.name} – Matematik ${L.book}</summary><div class="tablewrap"><table class="skilltable"><thead><tr><th>Avsnitt</th><th>Behärskning</th><th class="n">Rätt</th><th class="n">Fel</th><th class="n">Med tips</th></tr></thead><tbody>${
+    const table = L => `<details class="rep"${L.id === 'PL' ? ' open' : ''}><summary>${L.name} – ${L.grade} (Matematik ${L.book})</summary><div class="tablewrap"><table class="skilltable"><thead><tr><th>Avsnitt</th><th>Behärskning</th><th class="n">Rätt</th><th class="n">Fel</th><th class="n">Med tips</th></tr></thead><tbody>${
       [0, 1, 2].map(i => levelSections(L.id, i).map(sc => { const k = save.skills[sc.code];
         return `<tr><td><b>${secLabel(sc.code)}</b> ${sc.name}</td><td><span class="mast">${[1,2,3,4,5].map(n => `<i class="${n <= k.box ? 'on' : ''}"></i>`).join('')}</span></td><td class="n">${k.right}</td><td class="n">${k.wrong}</td><td class="n">${k.help}</td></tr>`; }).join('')).join('')}</tbody></table></div></details>`;
     const M_ = [
@@ -2544,6 +2562,7 @@ const SCREENS = {
       <div class="prose">
         <h2 class="h2">För vuxna</h2>
         <p>Uppgifterna följer avsnitten i Matematik Alfa, Beta och Gamma och MatematikXYZ:s filmer (A 1.1–A 6.4, B 1.1–B 6.4 och G 1.1–G 4.6). Varje kort som spelas kräver en uppgift från den valda nivån. Kortets märke (Brons till Stjärna) styr hur svår uppgiften blir inom avsnittet.</p>
+        ${weekReportHTML()}
         <h3>Träningsrapport</h3>
         ${LEAGUE_DEFS.map(table).join('')}
         <p class="muted">Behärskning går upp ett steg för varje tal som klaras utan hjälp och ner två steg vid fel. Totalt ${save.stats.right} rätt av ${save.stats.total} tal.</p>
@@ -2999,8 +3018,8 @@ Object.assign(SCREENS, {
           <div class="kits">${Object.entries(VS_KITS).map(([k, x]) => `<button class="chip kit${f.kit === k ? ' on' : ''}" data-act="vsKit" data-k="${k}" style="--kc:${x.color}"><i></i>${x.name}</button>`).join('')}</div>
         </div>
         <div class="panelbox"><h3>Din matte</h3>
-          <div class="tabs">${LEAGUE_DEFS.map(x => `<button class="tab${x.id === f.league ? ' on' : ''}" data-act="vsLeague" data-l="${x.id}">${x.name} <small>${x.book}</small></button>`).join('')}</div>
-          <div class="tabs">${L.levels.map((lv, i) => `<button class="tab${i === f.level ? ' on' : ''}" data-act="vsLevel" data-v="${i}">${lv.name} <small>${levelRange(L.id, i)}</small></button>`).join('')}</div>
+          <div class="tabs">${LEAGUE_DEFS.map(x => `<button class="tab${x.id === f.league ? ' on' : ''}" data-act="vsLeague" data-l="${x.id}">${x.name} <small>${x.grade}</small></button>`).join('')}</div>
+          <div class="tabs">${L.levels.map((lv, i) => `<button class="tab${i === f.level ? ' on' : ''}" data-act="vsLevel" data-v="${i}">${lv.name}</button>`).join('')}</div>
         </div>
       </div>
       ${f.err ? `<p class="vserr" role="alert">${esc(f.err)}</p>` : ''}
@@ -3079,9 +3098,11 @@ const ACT = {
   trainSec(d){ train.code = d.c; train.d = 1; train.streak = 0; trainNext(); },
   trainMix(d){ train.code = null; train.level = +d.v; train.d = 1; train.streak = 0; trainNext(); },
   howto(){ go('howto'); }, adults(){ go('adults'); },
-  library(){ go('library'); }, trophies(){ go('trophies'); },
+  library(){ go('library'); }, trophies(){ go('trophies'); }, daily(){ startDaily(); },
   libTab(d){ libView = d.k; render(); },
   example(d){ openProblem({ prob:{ ...EXAMPLES[d.ex], steps:[] }, example:true, eyebrow:'Exempel' }); },
+  pickLogo(){ document.getElementById('logoFile').click(); },
+  resetLogo(){ delete save.settings.logo; persist(); render(); },
   toggleSound(){ save.settings.sound = !save.settings.sound; persist(); render(); if (save.settings.sound) sfx('good'); },
   toggleClock(){ save.settings.clock = !save.settings.clock; persist(); render(); },
   reset(){ if (!confirmReset){ confirmReset = true; render(); return; } const s = save.settings; save = defaultSave(); save.settings = s; R = null; confirmReset = false; persist(); render(); toast('All statistik är nollställd.'); },
@@ -3219,6 +3240,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Enter') ACT.submit();
 });
 document.addEventListener('gesturestart', e => e.preventDefault());
+document.getElementById('logoFile').addEventListener('change', e => { const f = e.target.files[0]; if (f) loadLogo(f); e.target.value = ''; });
 document.addEventListener('dblclick', e => e.preventDefault());
 
 render();
