@@ -368,6 +368,7 @@ p{margin:0}
 .grid button.ans.c0::after{background:var(--ental)}.grid button.ans.c1::after{background:var(--tiotal)}.grid button.ans.c2::after{background:var(--hundratal)}
 .grid button.ans.cur{background:rgba(251,225,34,.18);border-radius:.12em;box-shadow:inset 0 0 0 .05em var(--gold)}
 .grid div.ans.fill{animation:pop .3s}
+.grid.long{font-size:clamp(36px,6.2vmin,64px)}
 @keyframes pop{0%{transform:scale(.4);opacity:0}}
 .padcol{display:flex;flex-direction:column;gap:10px}
 .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -474,6 +475,7 @@ p{margin:0}
 .unlock{background:rgba(94,224,138,.15);box-shadow:inset 0 0 0 2px var(--good);border-radius:14px;padding:12px 16px;font-size:18px}
 /* ligor */
 .leagues{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.league.wc{grid-column:1/-1}
 .league{border-radius:20px;overflow:hidden;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12);display:flex;flex-direction:column;min-width:0}
 .league header{background:linear-gradient(135deg,var(--lc),rgba(0,0,0,.6));padding:16px;border-bottom:4px solid var(--la)}
 .league header h3{font:400 clamp(20px,2.4vw,26px)/1.22 var(--font-display)}
@@ -484,6 +486,7 @@ p{margin:0}
 .lvl.locked{opacity:.45}
 .lvtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .lvtop b{font:400 18px var(--font-display);color:var(--la)}
+.lvrange{font-size:13px;color:var(--muted);white-space:nowrap}
 .lvtopics{font-size:14px;color:var(--muted);font-weight:700}
 .lvstate{font-size:14px;font-weight:900}
 .lvl.won .lvstate{color:var(--gold)}
@@ -709,6 +712,7 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
   .numpad button{min-height:44px;font-size:26px}
   .submit{min-height:52px;font-size:22px}
   .grid{font-size:min(9.5vw,52px)}
+  .grid.long{font-size:min(7.5vw,42px)}
   .qtext{font-size:19px}
   .qfig{max-height:22vh}
   .fields{font-size:34px}
@@ -784,6 +788,7 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
   .numpad .fn{font-size:15px}
   .submit{min-height:44px;font-size:19px}
   .grid{font-size:clamp(28px,9.5vh,46px)}
+  .grid.long{font-size:clamp(22px,6.5vh,34px)}
   .boardcol{gap:8px}
   .qtext{font-size:18px}
   .qfig{max-height:42vh}
@@ -842,6 +847,7 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
 <script src="samling.js"></script>
 <script src="effekter.js"></script>
 <script src="dagens.js"></script>
+<script src="worldcup.js"></script>
 <script>
 'use strict';
 /* =========================================================
@@ -954,7 +960,7 @@ const SAVE_KEY = 'unitedMattecup.v2';
 const LEAGUE_IDS = LEAGUE_DEFS.map(l => l.id);
 function defaultSave(){
   const skills = {}; CURRICULUM.forEach(s => skills[s.code] = { box:1, last:-99, right:0, wrong:0, help:0 });
-  const prog = {}; LEAGUE_IDS.forEach(l => prog[l] = { open:1, won:[false, false, false] });
+  const prog = {}; CUP_DEFS.forEach(L => prog[L.id] = { open:1, won:L.levels.map(() => false) });
   return { skills, prog, counter:0, stats:{ runs:0, cups:0, right:0, total:0 }, settings:{ sound:true, clock:true }, run:null,
     lib:{ cards:[], relics:[], teams:[] }, trophies:{}, days:{}, daily:{ last:'', streak:0, best:0 } };
 }
@@ -1139,9 +1145,9 @@ function newRun(league, level){
   save.stats.runs++;
   go('map');
 }
-const leagueOf = id => LEAGUE_DEFS.find(l => l.id === id);
+const leagueOf = id => CUP_DEFS.find(l => l.id === id);
 const levelName = (id, lv) => leagueOf(id).levels[lv].name;
-const levelRange = (id, lv) => { const L = leagueOf(id).levels[lv]; return `${secLabel(L.from)}–${secLabel(L.to)}`; };
+const levelRange = (id, lv) => { const L = leagueOf(id).levels[lv]; return L.from === L.to ? secLabel(L.from) : `${secLabel(L.from)}–${secLabel(L.to)}`; };
 function makeCardOffer(){
   const s = R.stage, out = [];
   while (out.length < 3){
@@ -2030,7 +2036,7 @@ function finishRun(won){
   if (won){
     save.stats.cups++;
     const pg = save.prog[R.league]; pg.won[R.level] = true;
-    if (R.level < 2 && pg.open < R.level + 2){ pg.open = R.level + 2; R.unlocked = R.level + 1; }
+    if (R.league !== WORLD_CUP.id && R.level < 2 && pg.open < R.level + 2){ pg.open = R.level + 2; R.unlocked = R.level + 1; }
   }
   save.run = null; persist();
   go(won ? 'victory' : 'gameover');
@@ -2053,8 +2059,8 @@ function openProblem(o){
     const code = o.code || chooseSection(levelSections(lg, lv)).code;
     prob = makeProblem(code, o.tier || 1);
   } else if (prob.kind === 'column' && !(prob.steps && prob.steps.length)) prob.steps = solveSteps(prob);
-  const colm = prob.kind === 'column', W = colm ? prob.W : 0;
-  P = { o, prob, W, steps:prob.steps, ans:Array(W).fill(''), cursor:0, carries:Array(W + 1).fill(0),
+  const colm = prob.kind === 'column', W = colm ? prob.W : 0, cells = colm ? ansCells(prob) : [];
+  P = { o, prob, W, steps:prob.steps, ans:colm ? freshAns(prob) : [], cells, cursor:colm ? cells[0] : 0, carries:Array(W + 1).fill(0),
         tops:colm ? digitsOf(prob.a, W) : [], changed:Array(W).fill(false),
         vals:colm ? [] : (prob.fields || []).map(() => ''), field:0, picked:-1,
         hint:false, hintText:'', msg:'', start:performance.now(),
@@ -2071,16 +2077,33 @@ function tickClock(){
   if (el){ el.style.transform = `scaleX(${left})`; if (left === 0) el.closest('.clockwrap').classList.add('out'); }
   if (left > 0) requestAnimationFrame(tickClock);
 }
+function ansCells(p){
+  if (!p.rows) return [...Array(p.W).keys()];
+  const L = p.rows.map(r => String(r).length), c = [];
+  for (let j = 0; j < L[0]; j++) c.push(p.W + j);
+  for (let j = 1; j < L[1]; j++) c.push(2 * p.W + j);
+  for (let j = 0; j < p.W; j++) c.push(j);
+  return c;
+}
+function freshAns(p){
+  const a = Array(p.rows ? 3 * p.W : p.W).fill('');
+  if (p.rows) a[2 * p.W] = '0';
+  return a;
+}
+function moveCursor(i){
+  if (P.prob.rows && Math.floor(i / P.W) !== Math.floor(P.cursor / P.W)) P.carries.fill(0);
+  P.cursor = i;
+}
 function gridHTML(g){
   const { prob, W } = g, A = digitsOf(prob.a, W), B = digitsOf(prob.b, W), lab = ['E', 'T', 'H', 'Tu', 'Tt'];
   const la = String(prob.a).length, lb = String(prob.b).length, mul = prob.op === '×';
   const cols = []; for (let j = W - 1; j >= 0; j--) cols.push(j);
   const hl = j => g.hl === j ? ' hl' : '';
-  let h = `<div class="grid" style="--w:${W}" role="group" aria-label="Uppställning">`;
+  let h = `<div class="grid${prob.rows ? ' long' : ''}" style="--w:${W}" role="group" aria-label="Uppställning">`;
   h += '<div></div>' + cols.map(j => `<div class="lab c${j}${hl(j)}">${lab[j]}</div>`).join('');
   h += '<div></div>' + cols.map(j => {
     if (prob.op === '+' || mul){
-      if (j === 0 || (mul && j >= la)) return `<div class="carry c${j}${hl(j)}"></div>`;
+      if (j === 0 || (mul && !prob.rows && j >= la)) return `<div class="carry c${j}${hl(j)}"></div>`;
       const v = g.carries[j] || 0;
       return g.interactive
         ? `<button class="carry c${j}${v ? ' on' : ''}" data-act="carry" data-j="${j}" aria-label="Minnessiffra ovanför ${COLPL[j]}">${v || ''}</button>`
@@ -2096,13 +2119,14 @@ function gridHTML(g){
     return `<div class="dig c${j}${st}${hl(j)}">${A[j]}</div>`;
   }).join('');
   h += `<div class="op">${prob.op === '+' ? '+' : mul ? '·' : '−'}</div>` + cols.map(j => `<div class="dig c${j}${hl(j)}">${j < lb ? B[j] : ''}</div>`).join('');
-  h += '<div class="rule"></div>';
-  h += '<div></div>' + cols.map(j => {
-    const v = g.ans[j] ?? '';
-    return g.interactive
-      ? `<button class="ans c${j}${g.cursor === j ? ' cur' : ''}" data-act="cursor" data-j="${j}" aria-label="Svar, ${COLPL[j]}">${v}</button>`
-      : `<div class="ans c${j}${v !== '' ? ' fill' : ''}${hl(j)}">${v}</div>`;
+  const ansRow = (off, op) => (op ? `<div class="op">${op}</div>` : '<div></div>') + cols.map(j => {
+    const i = off + j, v = g.ans[i] ?? '';
+    return g.interactive && (!g.cells || g.cells.includes(i))
+      ? `<button class="ans c${j}${g.cursor === i ? ' cur' : ''}" data-act="cursor" data-j="${i}" aria-label="${off ? `Rad ${off / W}` : 'Svar'}, ${COLPL[j]}">${v}</button>`
+      : `<div class="ans c${j}${!g.interactive && v !== '' ? ' fill' : ''}${hl(j)}">${v}</div>`;
   }).join('');
+  if (prob.rows) h += '<div class="rule"></div>' + ansRow(W, '') + ansRow(2 * W, '+');
+  h += '<div class="rule"></div>' + ansRow(0, '');
   return h + '</div>';
 }
 const fracHTML = (n, d) => `<span class="fr"><i>${n}</i><i>${d}</i></span>`;
@@ -2149,8 +2173,8 @@ function renderProblem(){
     const btn = done ? `<button class="btn big gold" data-act="solDone">${o.example ? 'Stäng' : 'Fortsätt'}</button>` : `<button class="btn big" data-act="nextStep">Nästa steg ▶</button>`;
     let left;
     if (p.kind === 'column'){
-      const W = P.W, ans = Array(W).fill(''), carries = Array(W + 1).fill(0);
-      for (let i = 0; i < k; i++){ const st = steps[i]; ans[st.col] = String(st.digit); if (st.extra) ans[st.extra.col] = String(st.extra.digit); if (st.carryTo != null) carries[st.carryTo] = st.carryVal || 1; }
+      const W = P.W, ans = Array(p.rows ? 3 * W : W).fill(''), carries = Array(W + 1).fill(0), cur = k > 0 ? steps[k - 1].row : undefined;
+      for (let i = 0; i < k; i++){ const st = steps[i], o0 = (st.row || 0) * W; ans[o0 + st.col] = String(st.digit); if (st.extra) ans[o0 + st.extra.col] = String(st.extra.digit); if (st.carryTo != null && st.row === cur) carries[st.carryTo] = st.carryVal || 1; }
       let tops = digitsOf(p.a, W), changed = Array(W).fill(false);
       if (p.op === '-' && k > 0){ const A0 = tops.slice(); tops = steps[k - 1].topsAfter; changed = tops.map((v, j) => v !== A0[j]); }
       left = gridHTML({ prob:p, W, ans, carries, tops, changed, interactive:false, hl:k > 0 ? steps[k - 1].col : -1 });
@@ -2190,8 +2214,9 @@ function renderProblem(){
     modal.innerHTML = `<div class="pm">${head}${clock}
       <div class="pm-body">
         <div class="boardcol">
-          <div class="qpart">${gridHTML({ prob:p, W:P.W, ans:P.ans, carries:P.carries, tops:P.tops, changed:P.changed, interactive:true, cursor:P.cursor })}</div>
+          <div class="qpart">${gridHTML({ prob:p, W:P.W, ans:P.ans, carries:P.carries, tops:P.tops, changed:P.changed, interactive:true, cursor:P.cursor, cells:P.cells })}</div>
           ${tip || `<p class="muted" style="text-align:center;font-size:15px">${sub ? 'Börja med entalen. Behöver du växla? Tryck på siffran till vänster i övre raden.'
+            : p.rows ? `Rad 1: gånger ${p.b % 10}. Rad 2: gånger ${Math.floor(p.b / 10)} – nollan står redan där. Lägg sist ihop raderna.`
             : mul ? 'Börja med entalen. Minnessiffran skriver du i rutan ovanför nästa kolumn – tryck flera gånger för större siffra.'
             : 'Börja med entalen. Blir det 10 eller mer? Tryck på rutan ovanför nästa kolumn för minnessiffran.'}</p>`}
           ${msg}
@@ -2216,8 +2241,10 @@ function showField(){
   if (box && box.scrollHeight > box.clientHeight) f.scrollIntoView({ block:'nearest' });
 }
 function tipFor(j){
-  const p = P.prob, s = P.steps[j], A = digitsOf(p.a, P.W), B = digitsOf(p.b, P.W);
+  const p = P.prob, A = digitsOf(p.a, P.W), B = digitsOf(p.b, P.W);
+  const s = p.rows ? P.steps.find(x => x.row === Math.floor(j / P.W) && (x.col === j % P.W || (x.extra && x.extra.col === j % P.W))) : P.steps[j];
   if (!s) return 'Den här rutan får minnessiffran från kolumnen till höger.';
+  if (p.rows) return s.tip;
   if (p.op === '×') return `${COL[j]}: räkna ${A[j]} · ${p.b}${s.cin ? ` + minnessiffran ${s.cin}` : ''}. ${s.last ? 'Skriv hela svaret.' : 'Blir det 10 eller mer? Skriv entalssiffran här och minnessiffran ovanför nästa kolumn.'}`;
   if (p.op === '+'){
     const base = `${COL[j]}: räkna ${A[j]} + ${B[j]}${s.cin ? ' + minnessiffran 1' : ''}.`;
@@ -2232,8 +2259,9 @@ function tipFor(j){
 function submitProblem(pickedIdx){
   const p = P.prob; let ok, given;
   if (p.kind === 'column'){
-    if (P.ans.some(v => v === '')){ P.msg = 'Fyll i alla rutor först.'; sfx('nope'); renderProblem(); return; }
-    const val = fromDigits(P.ans.map(Number)); ok = val === p.ans; given = fmt(val);
+    const sum = P.ans.slice(0, P.W);
+    if (sum.some(v => v === '')){ P.msg = p.rows ? 'Fyll i hela svarsraden längst ner först.' : 'Fyll i alla rutor först.'; sfx('nope'); renderProblem(); return; }
+    const val = fromDigits(sum.map(Number)); ok = val === p.ans; given = fmt(val);
   } else if (p.kind === 'choice'){
     P.picked = pickedIdx; ok = pickedIdx === p.correct; given = p.choices[pickedIdx];
   } else {
@@ -2246,7 +2274,7 @@ function submitProblem(pickedIdx){
   if (!ok && P.o.retry && P.tries === 0){
     P.tries = 1; P.hint = true; if (P.o.onRetryUsed) P.o.onRetryUsed();
     P.msg = 'Assisterande tränaren: något blev fel. Kolla en gång till!';
-    if (p.kind === 'column'){ P.ans = Array(P.W).fill(''); P.cursor = 0; } else if (p.kind !== 'choice'){ P.vals = P.vals.map(() => ''); P.field = 0; }
+    if (p.kind === 'column'){ P.ans = freshAns(p); P.cursor = P.cells[0]; P.carries.fill(0); } else if (p.kind !== 'choice'){ P.vals = P.vals.map(() => ''); P.field = 0; }
     sfx('nope'); renderProblem(); return;
   }
   record(p.skill, ok, P.hint);
@@ -2323,7 +2351,7 @@ const SCREENS = {
     return `<section class="screen scroll"><div class="title-wrap">
       <div class="title-badge">${titleBadge()}</div>
       <h1 class="logo"><span>United</span><span>Mattecup</span></h1>
-      <p class="lede">Bygg din trupp, räkna smart och för United till titeln i tre ligor.</p>
+      <p class="lede">Bygg din trupp, räkna smart och för United till titeln i fyra ligor.</p>
       <div class="menu">
         ${r ? `<button class="btn big gold" data-act="continueRun">Fortsätt cupen<small>${leagueOf(r.league).name} · ${levelName(r.league, r.level)} · ${r.opps[r.stage].stage}</small></button>` : ''}
         <button class="btn big ${r ? 'red' : 'gold'}" data-act="leagues">${r ? 'Välj ny liga' : 'Välj liga'}</button>
@@ -2356,11 +2384,11 @@ const SCREENS = {
           <div class="lvls">${L.levels.map((lv, i) => {
             const locked = i >= pg.open, wonL = pg.won[i], secs = levelSections(L.id, i);
             return `<button class="lvl${locked ? ' locked' : ''}${wonL ? ' won' : ''}" data-act="startLeague" data-l="${L.id}" data-v="${i}" ${locked ? 'aria-disabled="true"' : ''}>
-              <span class="lvtop"><b>${lv.name}</b></span>
+              <span class="lvtop"><b>${lv.name}</b><span class="lvrange">${levelRange(L.id, i)}</span></span>
               <span class="lvtopics">${secs.slice(0, 4).map(x => x.name).join(' · ')}${secs.length > 4 ? ' …' : ''}</span>
               <span class="lvstate">${locked ? `Låst – vinn ${L.levels[i - 1].name} först` : wonL ? 'Vunnen ★' : 'Spela'}</span>
             </button>`; }).join('')}</div>
-        </article>`; }).join('')}</div>
+        </article>`; }).join('')}${wcCardHTML()}</div>
     </div></section>`;
   },
   map(){
@@ -2492,6 +2520,7 @@ const SCREENS = {
     </div></section>`;
   },
   library(){ return libraryHTML(); },
+  wcpick(){ return wcPickHTML(); },
   dailyDone(){ return dailyDoneHTML(); },
   trophies(){ return trophiesHTML(); },
   howto(){
@@ -3029,7 +3058,7 @@ Object.assign(SCREENS, {
         </div>
         <div class="panelbox"><h3>Din matte</h3>
           <div class="tabs">${LEAGUE_DEFS.map(x => `<button class="tab${x.id === f.league ? ' on' : ''}" data-act="vsLeague" data-l="${x.id}">${x.name} <small>${x.grade}</small></button>`).join('')}</div>
-          <div class="tabs">${L.levels.map((lv, i) => `<button class="tab${i === f.level ? ' on' : ''}" data-act="vsLevel" data-v="${i}">${lv.name}</button>`).join('')}</div>
+          <div class="tabs">${L.levels.map((lv, i) => `<button class="tab${i === f.level ? ' on' : ''}" data-act="vsLevel" data-v="${i}">${lv.name} <small>${levelRange(L.id, i)}</small></button>`).join('')}</div>
         </div>
       </div>
       ${f.err ? `<p class="vserr" role="alert">${esc(f.err)}</p>` : ''}
@@ -3094,6 +3123,8 @@ const ACT = {
   leagues(){ go('leagues'); },
   startLeague(d, b){ if (b && b.getAttribute('aria-disabled') === 'true'){ toast('Vinn nivån före först.'); sfx('nope'); return; } newRun(d.l, +d.v); },
   again(){ newRun(R.league, R.level); },
+  wcPick(){ go('wcpick'); },
+  wcBook(d){ wcTab = d.l; render(); },
   continueRun(){ R = save.run; go('map'); },
   home(){ confirmReset = false; go('title'); },
   startMatch, endTurn,
@@ -3119,7 +3150,7 @@ const ACT = {
   // problem
   num(d){
     if (!P || P.view !== 'solve') return;
-    if (P.prob.kind === 'column'){ if (d.d === ',') return; P.ans[P.cursor] = d.d; if (P.cursor < P.W - 1) P.cursor++; }
+    if (P.prob.kind === 'column'){ if (d.d === ',') return; P.ans[P.cursor] = d.d; const k = P.cells.indexOf(P.cursor); if (k < P.cells.length - 1) moveCursor(P.cells[k + 1]); }
     else if (P.prob.kind === 'input'){
       let v = P.vals[P.field] || '';
       if (d.d === ','){ if (v.includes(',')) return; v = (v === '' || v === '−' ? v + '0' : v) + ','; }
@@ -3130,7 +3161,7 @@ const ACT = {
   },
   back(){
     if (!P || P.view !== 'solve') return;
-    if (P.prob.kind === 'column'){ if (P.ans[P.cursor] === '' && P.cursor > 0) P.cursor--; P.ans[P.cursor] = ''; }
+    if (P.prob.kind === 'column'){ const k = P.cells.indexOf(P.cursor); if (P.ans[P.cursor] === '' && k > 0) moveCursor(P.cells[k - 1]); P.ans[P.cursor] = ''; }
     else if (P.prob.kind === 'input'){ const v = P.vals[P.field] || ''; if (v === '' && P.field > 0) P.field--; else P.vals[P.field] = v.slice(0, -1); }
     renderProblem();
   },
@@ -3138,7 +3169,7 @@ const ACT = {
   field(d){ if (!P) return; P.field = +d.k; renderProblem(); },
   nextField(){ if (!P || P.prob.kind !== 'input') return; P.field = (P.field + 1) % P.prob.fields.length; renderProblem(); },
   pickChoice(d){ if (!P || P.view !== 'solve' || P.prob.kind !== 'choice') return; submitProblem(+d.k); },
-  cursor(d){ if (!P) return; P.cursor = +d.j; renderProblem(); },
+  cursor(d){ if (!P) return; moveCursor(+d.j); renderProblem(); },
   carry(d){ if (!P) return; const j = +d.j; P.carries[j] = P.prob.op === '×' ? ((P.carries[j] || 0) + 1) % 10 : (P.carries[j] ? 0 : 1); sfx('tap'); renderProblem(); },
   borrow(d){
     if (!P) return; const j = +d.j;

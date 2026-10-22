@@ -4,7 +4,7 @@
   "description": "Tester och simuleringar för United Mattecup. Kör npm install och npx playwright install chromium först.",
   "scripts": {
     "dev": "node devserver.js",
-    "test": "node sim-curriculum.js && node ui-all-sections.js && node super-attack.js && node multi-goal.js && node mobile-taps.js && node mobile-submit.js && node library-trophies.js && node new-cards.js && node card-text.js && node meter-contrast.js && node daily.js && node logo.js && node vs-two-players.js",
+    "test": "node sim-curriculum.js && node ui-all-sections.js && node long-mul.js && node super-attack.js && node multi-goal.js && node mobile-taps.js && node mobile-submit.js && node library-trophies.js && node new-cards.js && node card-text.js && node meter-contrast.js && node daily.js && node logo.js && node vs-two-players.js && node world-cup.js",
     "test:cup": "node cup-full.js",
     "sim:balance": "node sim-balance.js",
     "sim:vs": "node sim-vs.js"

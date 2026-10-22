@@ -40,7 +40,7 @@ function teamHTML(t){
 }
 function libTeams(){
   const seen = seenOf('teams');
-  return LEAGUE_DEFS.map(L => {
+  return CUP_DEFS.map(L => {
     const list = TEAMS[L.id], shown = list.filter(t => seen.has(t.name)).length;
     return `<div class="panelbox"><h3>${L.name} <small>${shown}/${list.length}</small></h3>
       <div class="libteams">${list.map(t => seen.has(t.name) ? teamHTML(t)

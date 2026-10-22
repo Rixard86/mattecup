@@ -22,10 +22,10 @@ async function libraryFlow(pg){
   expect(await pg.evaluate(() => trophyCount() === 0 && document.body.textContent.includes('Bibliotek')), 'ny spelare: 0 troféer och knappen Bibliotek finns');
   const nCards = await pg.evaluate(() => Object.keys(CARDS).length), nStart = await pg.evaluate(() => START_DECK.length);
   expect(await unknownCount(pg, 'cards') === nCards, `alla ${nCards} kort dolda från början`);
-  expect(await unknownCount(pg, 'teams') === 85, 'alla 85 lag dolda från början');
+  expect(await unknownCount(pg, 'teams') === 116, 'alla 116 lag dolda från början');
   expect(await unknownCount(pg, 'relics') === 8, 'all utrustning dold från början');
   const opp = await pg.evaluate(() => { newRun('PL', 0); startMatch(); return M.opp.name; });
-  expect(await unknownCount(pg, 'teams') === 84 && await pg.evaluate(n => save.lib.teams.includes(n), opp), `mött lag visas: ${opp}`);
+  expect(await unknownCount(pg, 'teams') === 115 && await pg.evaluate(n => save.lib.teams.includes(n), opp), `mött lag visas: ${opp}`);
   expect(await unknownCount(pg, 'cards') === nCards - nStart, 'startkorten visas efter första matchen');
   await pg.evaluate(() => { R.stage = 2; toRelicOrMap(); });
   expect(await unknownCount(pg, 'relics') === 5, 'tre erbjudna utrustningar visas');

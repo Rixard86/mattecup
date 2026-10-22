@@ -9,7 +9,9 @@
    Special League: alla lag i Allsvenskan 2026 (sorterade efter tabellen 11 okt)
    plus klubbar runt om i världen. Lag med swe:true räknas som svenska –
    varje cup i Special League får ett svenskt lag (ibland två, se SWE_TWO_CHANCE).
-   Trupper från oktober 2026 (starting11.com). Ändra fritt.
+   World Cup: landslag från hela världen, sorterade grovt efter världsrankingen.
+   Trupper från oktober 2026 (starting11.com). Landslagens trupper är inte
+   kontrollerade mot en källa. Ändra fritt.
    ========================================================= */
 'use strict';
 const TEAMS = {
@@ -104,11 +106,45 @@ const TEAMS = {
     { name:'Juventus', short:'JUV', color:'#f4f4f4', text:'#111111', players:[[25,'Vicario'],[15,'Kalulu'],[3,'Bremer'],[26,'Lucumí'],[2,'Çelik'],[12,'Luiz'],[7,'Conceição'],[22,'McKennie'],[31,'González'],[9,'Muani'],[17,'Alajbegović']] },
     { name:'AC Milan', short:'MIL', color:'#f4f4f4', text:'#c8102e', players:[[16,'Maignan'],[31,'Pavlović'],[34,'Gila'],[5,'De Winter'],[2,'Estupiñán'],[14,'Modrić'],[12,'Rabiot'],[80,'Musah'],[21,'Chukwueze'],[11,'Pulišić'],[9,'Ramos']] },
   ],
+  WC: [
+    { name:'Nya Zeeland', short:'NZL', color:'#f4f4f4', text:'#111111', players:[[1,'Crocombe'],[2,'Payne'],[5,'Boxall'],[15,'Bindon'],[13,'Cacace'],[6,'Bell'],[8,'Stamenić'],[17,'Garbett'],[10,'Singh'],[9,'Wood'],[11,'Just']] },
+    { name:'Island', short:'ISL', color:'#02529c', text:'#ffffff', players:[[1,'Valdimarsson'],[2,'Pálsson'],[6,'Ingason'],[4,'Grétarsson'],[3,'Lunddal'],[8,'Jóhannesson'],[16,'Þórðarson'],[10,'Haraldsson'],[11,'Guðmundsson'],[9,'Óskarsson'],[22,'Guðjohnsen']] },
+    { name:'Ghana', short:'GHA', color:'#f4f4f4', text:'#006b3f', players:[[16,'Ati-Zigi'],[2,'Seidu'],[23,'Djiku'],[4,'Salisu'],[14,'Mensah'],[6,'Samed'],[21,'Ashimeru'],[20,'Kudus'],[11,'Sulemana'],[9,'Williams'],[10,'Semenyo']] },
+    { name:'Egypten', short:'EGY', color:'#1b1b1b', text:'#ffffff', players:[[1,'El Shenawy'],[3,'Hany'],[6,'Abdelmonem'],[4,'Rabia'],[13,'Fatouh'],[8,'Ashour'],[17,'Attia'],[19,'Fathy'],[14,'Trézéguet'],[10,'Salah'],[22,'Marmoush']] },
+    { name:'Elfenbenskusten', short:'CIV', color:'#f77f00', text:'#0b3d20', players:[[1,'Fofana'],[17,'Singo'],[21,'Ndicka'],[7,'Kossounou'],[3,'Konan'],[6,'Sangaré'],[8,'Kessié'],[15,'Diallo'],[11,'Adingra'],[22,'Haller'],[9,'Guessand']] },
+    { name:'Sverige', short:'SWE', color:'#ffcd00', text:'#005293', players:[[1,'Johansson'],[2,'Holm'],[4,'Lindelöf'],[3,'Hien'],[6,'Gudmundsson'],[8,'Ayari'],[20,'Bergvall'],[7,'Elanga'],[10,'Kulusevski'],[9,'Isak'],[17,'Gyökeres']] },
+    { name:'Nigeria', short:'NGA', color:'#008751', text:'#ffffff', players:[[23,'Nwabali'],[2,'Osayi-Samuel'],[6,'Bassey'],[21,'Ajayi'],[3,'Sanusi'],[4,'Ndidi'],[8,'Onyeka'],[17,'Iwobi'],[11,'Lookman'],[9,'Osimhen'],[7,'Boniface']] },
+    { name:'Kanada', short:'CAN', color:'#f4f4f4', text:'#d52b1e', players:[[1,'St. Clair'],[2,'Johnston'],[13,'Cornelius'],[15,'Bombito'],[19,'Davies'],[7,'Eustáquio'],[8,'Koné'],[11,'Buchanan'],[10,'Ahmed'],[20,'David'],[17,'Larin']] },
+    { name:'Australien', short:'AUS', color:'#ffc72c', text:'#00843d', players:[[1,'Ryan'],[2,'Atkinson'],[19,'Souttar'],[4,'Circati'],[5,'Bos'],[22,'Irvine'],[13,"O'Neill"],[8,'Metcalfe'],[23,'Goodwin'],[9,'Yengi'],[11,'Irankunda']] },
+    { name:'Sydkorea', short:'KOR', color:'#1b1b1b', text:'#e8384f', players:[[21,'Hyeon-Woo'],[22,'Young-Woo'],[4,'Min-Jae'],[15,'Yu-Min'],[13,'Myung-Jae'],[6,'In-Beom'],[10,'Jae-Sung'],[18,'Kang-In'],[11,'Hee-Chan'],[7,'Son'],[9,'Hyeon-Gyu']] },
+    { name:'Norge', short:'NOR', color:'#f4f4f4', text:'#0b2a5b', players:[[1,'Nyland'],[2,'Ryerson'],[3,'Ajer'],[4,'Heggem'],[5,'Wolfe'],[6,'Berge'],[8,'Berg'],[10,'Ødegaard'],[7,'Nusa'],[9,'Haaland'],[20,'Sørloth']] },
+    { name:'Senegal', short:'SEN', color:'#f4f4f4', text:'#00853f', players:[[16,'Mendy'],[15,'Diatta'],[3,'Koulibaly'],[19,'Niakhaté'],[14,'Jakobs'],[5,'Gueye'],[8,'Camara'],[17,'Sarr'],[10,'Mané'],[11,'Jackson'],[13,'Ndiaye']] },
+    { name:'Danmark', short:'DEN', color:'#f4f4f4', text:'#c8102e', players:[[1,'Hermansen'],[18,'Kristensen'],[6,'Christensen'],[3,'Andersen'],[5,'Mæhle'],[23,'Højbjerg'],[21,'Hjulmand'],[14,'Damsgaard'],[10,'Eriksen'],[9,'Højlund'],[11,'Isaksen']] },
+    { name:'Schweiz', short:'SUI', color:'#f4f4f4', text:'#d52b1e', players:[[1,'Kobel'],[3,'Widmer'],[5,'Akanji'],[4,'Elvedi'],[13,'Rodríguez'],[10,'Xhaka'],[8,'Freuler'],[17,'Vargas'],[11,'Ndoye'],[7,'Embolo'],[9,'Amdouni']] },
+    { name:'Japan', short:'JPN', color:'#0b2a8c', text:'#ffffff', players:[[1,'Suzuki'],[2,'Sugawara'],[4,'Itakura'],[16,'Watanabe'],[21,'Ito'],[6,'Endo'],[5,'Morita'],[20,'Kubo'],[10,'Minamino'],[18,'Ueda'],[7,'Mitoma']] },
+    { name:'USA', short:'USA', color:'#f4f4f4', text:'#0a3161', players:[[1,'Turner'],[2,'Dest'],[3,'Richards'],[13,'Ream'],[5,'Robinson'],[4,'Adams'],[8,'McKennie'],[7,'Reyna'],[10,'Pulisic'],[20,'Balogun'],[9,'Pepi']] },
+    { name:'Mexiko', short:'MEX', color:'#006847', text:'#ffffff', players:[[1,'Malagón'],[2,'Sánchez'],[3,'Montes'],[5,'Vásquez'],[23,'Gallardo'],[4,'Álvarez'],[24,'Chávez'],[17,'Pineda'],[10,'Vega'],[11,'Giménez'],[9,'Jiménez']] },
+    { name:'Uruguay', short:'URU', color:'#5cbfeb', text:'#0b1f44', players:[[23,'Rochet'],[13,'Varela'],[4,'Araújo'],[2,'Giménez'],[17,'Olivera'],[15,'Valverde'],[5,'Ugarte'],[6,'Bentancur'],[10,'De Arrascaeta'],[19,'Núñez'],[11,'Pellistri']] },
+    { name:'Colombia', short:'COL', color:'#fcd116', text:'#003893', players:[[12,'Vargas'],[21,'Muñoz'],[23,'Sánchez'],[3,'Lucumí'],[17,'Mojica'],[6,'Ríos'],[16,'Lerma'],[11,'Arias'],[10,'Rodríguez'],[7,'Díaz'],[24,'Córdoba']] },
+    { name:'Kroatien', short:'CRO', color:'#1f3a68', text:'#ffffff', players:[[1,'Livaković'],[2,'Stanišić'],[6,'Šutalo'],[5,'Ćaleta-Car'],[4,'Gvardiol'],[8,'Kovačić'],[15,'Sučić'],[7,'Majer'],[10,'Modrić'],[9,'Kramarić'],[17,'Budimir']] },
+    { name:'Marocko', short:'MAR', color:'#f4f4f4', text:'#006233', players:[[1,'Bounou'],[2,'Hakimi'],[5,'Aguerd'],[18,'Riad'],[3,'Mazraoui'],[4,'Amrabat'],[8,'Ounahi'],[14,'El Khannouss'],[17,'Ezzalzouli'],[10,'Díaz'],[19,'En-Nesyri']] },
+    { name:'Italien', short:'ITA', color:'#0066b3', text:'#ffffff', players:[[1,'Donnarumma'],[2,'Di Lorenzo'],[23,'Bastoni'],[5,'Calafiori'],[3,'Dimarco'],[18,'Barella'],[8,'Tonali'],[7,'Frattesi'],[20,'Politano'],[9,'Retegui'],[11,'Kean']] },
+    { name:'Belgien', short:'BEL', color:'#1b1b1b', text:'#fdda24', players:[[1,'Courtois'],[21,'Castagne'],[2,'Debast'],[5,'Theate'],[3,'De Cuyper'],[24,'Onana'],[8,'Tielemans'],[7,'De Bruyne'],[11,'Doku'],[9,'Openda'],[10,'Lukaku']] },
+    { name:'Tyskland', short:'GER', color:'#f4f4f4', text:'#111111', players:[[1,'Baumann'],[6,'Kimmich'],[4,'Tah'],[2,'Rüdiger'],[3,'Raum'],[5,'Pavlović'],[23,'Stiller'],[17,'Wirtz'],[10,'Musiala'],[7,'Havertz'],[9,'Woltemade']] },
+    { name:'Nederländerna', short:'NED', color:'#f36c21', text:'#111111', players:[[1,'Verbruggen'],[22,'Dumfries'],[4,'van Dijk'],[15,'van de Ven'],[5,'Aké'],[14,'Reijnders'],[8,'Gravenberch'],[21,'de Jong'],[7,'Simons'],[10,'Depay'],[11,'Gakpo']] },
+    { name:'Portugal', short:'POR', color:'#f4f4f4', text:'#006600', players:[[1,'Costa'],[2,'Dalot'],[4,'Dias'],[14,'Inácio'],[19,'Mendes'],[23,'Vitinha'],[15,'Neves'],[8,'Fernandes'],[10,'Silva'],[7,'Ronaldo'],[17,'Leão']] },
+    { name:'Brasilien', short:'BRA', color:'#fedd00', text:'#009c3b', players:[[1,'Alisson'],[2,'Wesley'],[4,'Marquinhos'],[3,'Gabriel'],[6,'Arana'],[5,'Casemiro'],[8,'Guimarães'],[20,'Paquetá'],[19,'Estêvão'],[7,'Vinícius'],[11,'Raphinha']] },
+    { name:'England', short:'ENG', color:'#f4f4f4', text:'#0b1f44', players:[[1,'Pickford'],[2,'James'],[5,'Stones'],[6,'Guéhi'],[3,'Lewis-Skelly'],[4,'Rice'],[16,'Anderson'],[10,'Bellingham'],[20,'Foden'],[9,'Kane'],[7,'Saka']] },
+    { name:'Argentina', short:'ARG', color:'#75aadb', text:'#111111', players:[[23,'Martínez'],[26,'Molina'],[13,'Romero'],[2,'Balerdi'],[3,'Tagliafico'],[7,'De Paul'],[24,'Fernández'],[20,'Mac Allister'],[18,'Paz'],[10,'Messi'],[9,'Álvarez']] },
+    { name:'Frankrike', short:'FRA', color:'#002654', text:'#ffffff', players:[[16,'Maignan'],[5,'Koundé'],[17,'Saliba'],[4,'Upamecano'],[22,'Hernández'],[8,'Tchouaméni'],[14,'Rabiot'],[20,'Doué'],[11,'Olise'],[10,'Mbappé'],[7,'Dembélé']] },
+    { name:'Spanien', short:'ESP', color:'#0b2a5b', text:'#ffd200', players:[[23,'Simón'],[2,'Porro'],[22,'Cubarsí'],[14,'Huijsen'],[24,'Cucurella'],[16,'Rodri'],[8,'Ruiz'],[20,'Pedri'],[10,'Olmo'],[19,'Yamal'],[17,'Williams']] },
+  ],
 };
 const STAGE_NAMES = {
   PL:['Omgång 1', 'Omgång 2', 'Omgång 3', 'Kvartsfinal', 'Semifinal', 'Final'],
   CL:['Ligaspel 1', 'Ligaspel 2', 'Ligaspel 3', 'Kvartsfinal', 'Semifinal', 'Final'],
   SL:['Världsomgång 1', 'Världsomgång 2', 'Världsomgång 3', 'Kvartsfinal', 'Semifinal', 'Final'],
+  WC:['Gruppspel 1', 'Gruppspel 2', 'Åttondelsfinal', 'Kvartsfinal', 'Semifinal', 'Final'],
 };
 const SWE_TWO_CHANCE = 0.15; // chans att en cup i Special League får två svenska lag
 const BAND_TEXT = ['Ett lag som kämpar i botten.', 'Ett lag som kan överraska.', 'Ett stabilt lag.', 'Ett starkt lag med farliga spelare.', 'Ett topplag – var beredd!', 'Ett av de allra bästa lagen.'];

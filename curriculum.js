@@ -123,16 +123,48 @@ function genMul(nA, bmin, bmax, mode){
     const b = rnd(bmin, bmax), A = Array.from({ length:nA }, (_, i) => i === nA - 1 ? rnd(1, 9) : rnd(0, 9));
     let cin = 0, carries = 0;
     for (let j = 0; j < nA; j++){ const s = A[j] * b + cin; if (j < nA - 1 && s >= 10) carries++; cin = Math.floor(s / 10); }
-    if (mode === 0 ? (carries === 0 && cin === 0) : mode === 1 ? carries >= 1 : carries >= 2){
+    if (mode === 0 ? (carries === 0 && cin === 0) : carries >= mode){
       const a = fromDigits(A), ans = a * b;
       return COLUMN({ op:'×', a, b, ans, n:nA, W:String(ans).length });
     }
   }
   return COLUMN({ op:'×', a:23, b:3, ans:69, n:2, W:2 });
 }
+function genLongMul(a, b){
+  const ans = a * b, u = b % 10;
+  return COLUMN({ op:'×', a, b, ans, n:String(a).length, W:String(ans).length, rows:[a * u, a * (b - u)], slow:2 });
+}
 const randPattern = (n, k) => { for (;;){ const p = Array.from({ length:n }, (_, i) => i < n - 1 ? (Math.random() < .5 ? 1 : 0) : 0); if (p.reduce((s, v) => s + v, 0) === k) return p; } };
 
+function partialSteps(p, row){
+  const A = digitsOf(p.a, p.n), f = row === 1 ? p.b % 10 : Math.floor(p.b / 10), sh = row - 1, steps = [];
+  if (sh) steps.push({ row, col:0, digit:0, cin:0, text:`Nu räknar du med tiotalssiffran ${f}. Skriv först en 0:a som ental i andra raden.`, tip:'Nollan står redan här.' });
+  let cin = 0;
+  A.forEach((x, j) => {
+    const s = x * f + cin, c = j + sh, last = j === A.length - 1, big = s >= 10;
+    const tip = `${COL[c]}: räkna ${x} · ${f}${cin ? ` + minnessiffran ${cin}` : ''}. ${last ? 'Skriv hela svaret.' : 'Blir det 10 eller mer? Skriv entalssiffran här och minnessiffran ovanför nästa siffra.'}`;
+    let text = `${COL[c]}: ${x} · ${f}${cin ? ` + ${cin} (minnessiffran)` : ''} = ${s}. `;
+    if (last) text += big ? `Det är sista siffran, så skriv hela ${s}.` : `Skriv ${s}.`;
+    else text += big ? `Skriv ${s % 10} och sätt minnessiffran ${Math.floor(s / 10)} ovanför siffran ${A[j + 1]} i ${p.a}.` : `Skriv ${s}.`;
+    steps.push({ row, col:c, digit:s % 10, extra:last && big ? { col:c + 1, digit:Math.floor(s / 10) } : null, carryTo:!last && big ? j + 1 : null, carryVal:Math.floor(s / 10), cin, last, text, tip });
+    cin = Math.floor(s / 10);
+  });
+  return steps;
+}
+function longMulSteps(p){
+  const W = p.W, L = p.rows.map(r => String(r).length), R = p.rows.map(r => digitsOf(r, W)), steps = [...partialSteps(p, 1), ...partialSteps(p, 2)];
+  let cin = 0;
+  for (let j = 0; j < W; j++){
+    const terms = [0, 1].filter(r => j < L[r]).map(r => R[r][j]), s = terms.reduce((x, y) => x + y, cin), big = s >= 10 && j < W - 1;
+    const parts = [...terms, ...(cin ? ['1 (minnessiffran)'] : [])], expr = parts.join(' + '), sum = parts.length > 1 ? ` = ${s}` : '';
+    const text = `${j ? '' : 'Lägg ihop de två raderna. '}${COL[j]}: ${expr}${sum}. ${big ? `Skriv ${s % 10} och sätt minnessiffran 1 ovanför ${COLPL[j + 1]}.` : `Skriv ${s}.`}`;
+    steps.push({ row:0, col:j, digit:s % 10, carryTo:big ? j + 1 : null, carryVal:1, cin, last:j === W - 1, text, tip:`${COL[j]}: lägg ihop siffrorna i de två raderna${cin ? ' och minnessiffran' : ''}.` });
+    cin = big ? 1 : 0;
+  }
+  return steps;
+}
 function solveSteps(p){
+  if (p.rows) return longMulSteps(p);
   const W = p.W, A = digitsOf(p.a, W), steps = [];
   if (p.op === '+'){
     const B = digitsOf(p.b, W); let cin = 0;
@@ -188,6 +220,25 @@ function shortDiv(a, dv){
     else { q += qd; L.push(`${cur} / ${dv} = ${qd}${rem ? `, och ${rem} blir kvar (minnessiffra till nästa siffra)` : ''}.`); if (rem) carries++; }
   });
   return { q:Number(q || 0), rem, L, carries };
+}
+function decDivSteps(a, dv){
+  const L = shortDiv(a, dv).L.slice(); let rem = a % dv;
+  if (rem) L.push('Sätt ett decimalkomma i svaret och skriv en nolla efter kommat i täljaren.');
+  while (rem){ const cur = rem * 10, qd = Math.floor(cur / dv); rem = cur % dv; L.push(`${cur} / ${dv} = ${qd}${rem ? `, och ${rem} blir kvar – skriv en nolla till` : ''}.`); }
+  return L;
+}
+function mixedAddSub(den, add){
+  let w1, n1, w2, n2, tot;
+  do { w1 = rnd(add ? 1 : 2, 5); w2 = rnd(1, add ? 3 : w1 - 1); n1 = rnd(1, den - 1); n2 = rnd(1, den - 1); tot = add ? (w1 + w2) * den + n1 + n2 : (w1 - w2) * den + n1 - n2; } while (tot % den === 0 || tot < den);
+  const W = Math.floor(tot / den), N = tot % den, fr = n => `${n}/${den}`, end = `Svaret: ${W} ${fr(N)}.`;
+  const steps = add ? [`Hela för sig: ${w1} + ${w2} = ${w1 + w2}. Bråken för sig: ${fr(n1)} + ${fr(n2)} = ${fr(n1 + n2)}.`, ...(n1 + n2 >= den ? [`${fr(n1 + n2)} = 1 ${fr(n1 + n2 - den)}, så det blir en hel till.`] : []), end]
+    : n1 >= n2 ? [`Hela för sig: ${w1} − ${w2} = ${w1 - w2}. Bråken för sig: ${fr(n1)} − ${fr(n2)} = ${fr(n1 - n2)}.`, end]
+    : [`${fr(n1)} − ${fr(n2)} går inte. Växla en hel till ${fr(den)}: ${w1} ${fr(n1)} = ${w1 - 1} ${fr(n1 + den)}.`, `Hela: ${w1 - 1} − ${w2} = ${w1 - 1 - w2}. Bråken: ${fr(n1 + den)} − ${fr(n2)} = ${fr(n1 + den - n2)}.`, end];
+  return MIXED(`<b>${w1} ${fr(n1)} ${add ? '+' : '−'} ${w2} ${fr(n2)}</b> = ?`, W, N, den, { steps, hint:'Räkna hela för sig och bråken för sig.' });
+}
+function mulSteps(a, b){
+  const bu = b % 10, bt = b - bu;
+  return [`Ställ upp ${a} · ${b}. Börja med entalssiffran: ${a} · ${bu} = ${fmt(a * bu)}.`, `Sedan tiotalssiffran: ${a} · ${bt / 10} = ${fmt(a * bt / 10)}. Skriv raden ett steg till vänster, med en nolla som ental: ${fmt(a * bt)}.`, `Lägg ihop raderna: ${fmt(a * bu)} + ${fmt(a * bt)} = ${fmt(a * b)}.`];
 }
 
 /* ---------- figurer ---------- */
@@ -646,10 +697,11 @@ const ALFA = [
     const sum = vals.reduce((a, b) => a + b, 0);
     return NUM(`Ett lag gjorde så här många mål i ${n} matcher: <b>${vals.join(', ')}</b>. Vad är medelvärdet?`, mean, { suffix:'mål', steps:[`Lägg ihop alla: ${vals.join(' + ')} = ${sum}.`, `Dela med antalet matcher: ${sum} / ${n} = ${mean}.`], hint:'Medelvärde = summan delat med antalet.' });
   } },
-  { code:'A4.1', name:'Multiplikation med 10, 100 och 1 000', gen(d){
-    const f = d === 1 ? 10 : d === 2 ? 100 : d === 3 ? 1000 : pick([10, 100, 1000]), a = d === 4 ? rnd(101, 999) : rnd(2, 99), z = String(f).length - 1;
+  { code:'A4.1', name:'Multiplikation och division med 10, 100 och 1 000', gen(d){
+    const f = d === 1 ? 10 : d === 2 ? 100 : d === 3 ? 1000 : pick([10, 100, 1000]), a = d === 4 ? rnd(101, 999) : rnd(2, 99), z = String(f).length - 1, zw = `${z} ${z === 1 ? 'nolla' : 'nollor'}`;
+    if (Math.random() < .5) return NUM(`<b>${fmt(a * f)} / ${fmt(f)}</b> = ?`, a, { steps:[`Dividera med ${fmt(f)}: varje siffra flyttas ${z} steg åt höger.`, `Ta bort ${zw}: ${fmt(a)}.`], hint:`Med ${fmt(f)} tar du bort ${zw}.`, slow:1 });
     if (d === 4 && Math.random() < .5) return NUM(`<b>${a} · ? = ${fmt(a * f)}</b>`, f, { steps:[`Hur många nollor har kommit till? ${z}.`, `Då är det multiplikation med ${fmt(f)}.`], hint:'Räkna nollorna som har kommit till.' });
-    return NUM(`<b>${a} · ${fmt(f)}</b> = ?`, a * f, { steps:[`Multiplicera med ${fmt(f)}: varje siffra flyttas ${z} steg åt vänster.`, `Lägg till ${z} ${z === 1 ? 'nolla' : 'nollor'}: ${fmt(a * f)}.`], hint:`Med ${fmt(f)} lägger du till ${z} ${z === 1 ? 'nolla' : 'nollor'}.`, slow:1 });
+    return NUM(`<b>${a} · ${fmt(f)}</b> = ?`, a * f, { steps:[`Multiplicera med ${fmt(f)}: varje siffra flyttas ${z} steg åt vänster.`, `Lägg till ${zw}: ${fmt(a * f)}.`], hint:`Med ${fmt(f)} lägger du till ${zw}.`, slow:1 });
   } },
   { code:'A4.2', name:'Multiplikation med tal som slutar på 0', gen(d){
     let a, b;
@@ -706,6 +758,11 @@ const ALFA = [
     const INFO = { triangel:'tre sidor och tre hörn', kvadrat:'fyra lika långa sidor och fyra räta vinklar', rektangel:'fyra räta vinklar, och motstående sidor är lika långa', cirkel:'ingen hörn – alla punkter är lika långt från mitten',
       femhörning:'fem sidor och fem hörn', sexhörning:'sex sidor och sex hörn', åttahörning:'åtta sidor och åtta hörn', parallellogram:'två par parallella sidor men inga räta vinklar',
       romb:'fyra lika långa sidor men inga räta vinklar', parallelltrapets:'ett par parallella sidor' };
+    if (d === 4 && Math.random() < .5){
+      if (Math.random() < .5){ const l = rnd(3, 12), b = rnd(2, 8); return NUM('Hur stor är rektangelns omkrets?', 2 * (l + b), { fig:figRect(l, b, 'cm'), suffix:'cm', steps:['Omkrets = alla sidor tillsammans.', `${l} + ${b} + ${l} + ${b} = ${2 * (l + b)} cm.`], hint:'Lägg ihop alla fyra sidor.' }); }
+      const a = rnd(3, 9), b = rnd(3, 9), c = rnd(Math.abs(a - b) + 1, Math.min(a + b - 1, 12));
+      return NUM('Hur stor är triangelns omkrets?', a + b + c, { fig:figTri3(a, b, c, 'cm'), suffix:'cm', steps:['Omkrets = alla sidor tillsammans.', `${a} + ${b} + ${c} = ${a + b + c} cm.`], hint:'Lägg ihop alla tre sidor.' });
+    }
     if (d === 4){
       const s = pick(['triangel', 'kvadrat', 'femhörning', 'sexhörning', 'åttahörning']), n = { triangel:3, kvadrat:4, femhörning:5, sexhörning:6, åttahörning:8 }[s], what = pick(['hörn', 'sidor']);
       return NUM(`Hur många ${what} har en <b>${s}</b>?`, n, { steps:[`En ${s} har ${INFO[s]}.`], hint:'Namnet säger ofta hur många hörn figuren har.' });
@@ -789,17 +846,20 @@ const BETA = [
     let i; do { i = rnd(1001, 9999); } while (i % 10 === 0); const x = i / 1000, r = Math.round(i / 10) / 100;
     return NUM(`Avrunda <b>${fmt(x)}</b> till två decimaler.`, r, { steps:[`Titta på tusendelssiffran: ${i % 10}.`, `${i % 10 >= 5 ? 'Avrunda uppåt' : 'Avrunda nedåt'}: ${fmt(x)} ≈ ${fmt(r)}.`], hint:'Titta på tredje siffran efter kommat.' });
   } },
-  { code:'B2.1', name:'Addition med tal i decimalform', gen(d){
-    let a, b, c = 0, dec = d === 3 ? 2 : 1;
+  { code:'B2.1', name:'Addition och subtraktion med tal i decimalform', gen(d){
+    const op = Math.random() < .5 ? '+' : '-', sym = ` ${OPS[op]} `, dec = d === 3 ? 2 : 1;
+    let a, b, c = 0;
     for (;;){
-      if (d === 1){ a = rnd(11, 89); b = rnd(11, 89); if (a % 10 + b % 10 >= 10) continue; }
-      else if (d === 2){ a = rnd(11, 89); b = rnd(11, 89); if (a % 10 + b % 10 < 10) continue; }
+      if (d <= 2){ a = rnd(11, 89); b = rnd(11, 89); }
       else if (d === 3){ a = rnd(101, 999); b = rnd(101, 999); }
-      else { a = rnd(11, 59); b = rnd(11, 59); c = rnd(11, 59); }
+      else { a = op === '+' ? rnd(11, 59) : rnd(61, 99); b = rnd(11, op === '+' ? 59 : 29); c = rnd(11, op === '+' ? 59 : 29); }
+      if (op === '-' && b + c >= a) continue;
+      const cross = op === '+' ? a % 10 + b % 10 >= 10 : a % 10 < b % 10;
+      if ((d === 1 && cross) || (d === 2 && !cross)) continue;
       break;
     }
-    const s = a + b + c, txt = [a, b, c].filter(Boolean).map(x => decTxt(x, dec)).join(' + ');
-    return NUM(`<b>${txt}</b> = ?`, s / Math.pow(10, dec), { steps:['Ställ upp talen med kommatecknen rakt under varandra.', `Räkna som ${dec === 1 ? 'tiondelar' : 'hundradelar'}: ${[a, b, c].filter(Boolean).join(' + ')} = ${s}.`, `Sätt tillbaka kommat: ${decTxt(s, dec)}.`], hint:'Kommatecken under kommatecken – sedan som vanlig addition.' });
+    const terms = [a, b, c].filter(Boolean), s = op === '+' ? a + b + c : a - b - c;
+    return NUM(`<b>${terms.map(x => decTxt(x, dec)).join(sym)}</b> = ?`, s / Math.pow(10, dec), { steps:['Ställ upp talen med kommatecknen rakt under varandra.', `Räkna som ${dec === 1 ? 'tiondelar' : 'hundradelar'}: ${terms.join(sym)} = ${s}.`, `Sätt tillbaka kommat: ${decTxt(s, dec)}.`], hint:`Kommatecken under kommatecken – sedan som vanlig ${op === '+' ? 'addition' : 'subtraktion'}.` });
   } },
   { code:'B2.2', name:'Tal med olika antal decimaler', gen(d){
     let a, b, op, txt;
@@ -915,10 +975,10 @@ const BETA = [
     if (d === 1) return genMul(3, 3, 9, 1);
     if (d === 2) return genMul(4, 3, 6, 1);
     if (d === 3) return genMul(4, 7, 9, 2);
-    const a = rnd(12, 49), b = rnd(12, 39), bt = b - b % 10, bu = b % 10;
-    return NUM(`<b>${a} · ${b}</b> = ?`, a * b, { steps:[`Dela upp ${b} i ${bt} och ${bu}.`, `${a} · ${bt} = ${a * bt}.`, `${a} · ${bu} = ${a * bu}.`, `${a * bt} + ${a * bu} = ${fmt(a * b)}.`], hint:`Räkna ${a} · ${bu} och ${a} · ${bt} var för sig.` });
+    return genMul(4, 6, 9, 3);
   } },
   { code:'B4.3', name:'Kort division', gen(d){
+    const dec = d === 4 && Math.random() < .5;
     let dv, q, a, sd;
     for (let t = 0; t < 800; t++){
       dv = d === 4 ? rnd(6, 9) : rnd(3, 8);
@@ -927,8 +987,10 @@ const BETA = [
       a = q * dv; sd = shortDiv(a, dv);
       if (d === 1 && (a < 100 || a > 999)) continue;
       if (d >= 2 && (a < 1000 || a > 9999)) continue;
+      if (dec && a % 10 === 0) continue;
       if (sd.carries >= 1) break;
     }
+    if (dec) return NUM(`Räkna med kort division: <b>${fmt(a / 100)} / ${dv}</b>`, q / 100, { steps:['Räkna som vanligt, en siffra i taget.', ...sd.L, `Kommat i svaret hamnar rakt ovanför kommat i täljaren: ${fmt(q / 100)}.`], hint:'Räkna som vanligt och sätt kommat i svaret rakt ovanför kommat i täljaren.' });
     return NUM(`Räkna med kort division: <b>${fmt(a)} / ${dv}</b>`, q, { steps:[...sd.L, `Svaret är ${fmt(q)}.`], hint:'En siffra i taget från vänster. Glöm inte minnessiffrorna.' });
   } },
   { code:'B4.4', name:'Multiplikation med 10, 100 och 1 000', gen(d){
@@ -980,6 +1042,7 @@ const BETA = [
     if (d === 1){ const l = rnd(4, 15), b = rnd(2, 9); return NUM('Hur stor är rektangelns omkrets?', 2 * (l + b), { fig:figRect(l, b, 'cm'), suffix:'cm', steps:['Omkrets = alla sidor tillsammans.', `${l} + ${b} + ${l} + ${b} = ${2 * (l + b)} cm.`], hint:'Lägg ihop alla fyra sidor.' }); }
     if (d === 2){ const s = rnd(3, 15); return NUM(`En kvadrat har sidan <b>${s} cm</b>. Hur stor är omkretsen?`, 4 * s, { fig:figRect(s, s, 'cm'), suffix:'cm', steps:['En kvadrat har fyra lika långa sidor.', `4 · ${s} = ${4 * s} cm.`], hint:'Fyra lika långa sidor.' }); }
     if (d === 3){ const a = rnd(5, 14), b = rnd(4, 12), c = rnd(Math.abs(a - b) + 1, a + b - 1); return NUM('Hur stor är triangelns omkrets?', a + b + c, { fig:figTri3(a, b, c, 'cm'), suffix:'cm', steps:[`${a} + ${b} + ${c} = ${a + b + c} cm.`], hint:'Lägg ihop alla tre sidor.' }); }
+    if (Math.random() < .5){ const dd = rnd(2, 30); return NUM('Ungefär hur stor är cirkelns omkrets? Räkna med att omkretsen är ungefär 3 gånger diametern.', 3 * dd, { fig:figCircle(dd, 'd', 'cm'), suffix:'cm', steps:['Omkretsen runt en cirkel är lite mer än 3 gånger diametern.', `3 · ${dd} = ${3 * dd} cm.`], hint:'Omkretsen ≈ 3 · diametern.' }); }
     const l = rnd(6, 20), b = rnd(2, l - 1); return NUM(`En rektangel har omkretsen <b>${2 * (l + b)} cm</b> och längden <b>${l} cm</b>. Hur bred är den?`, b, { suffix:'cm', steps:[`Två längder: 2 · ${l} = ${2 * l} cm.`, `Kvar till två bredder: ${2 * (l + b)} − ${2 * l} = ${2 * b} cm.`, `En bredd: ${2 * b} / 2 = ${b} cm.`], hint:'Omkretsen är två längder och två bredder.' });
   } },
   { code:'B5.6', name:'Area', gen(d){
@@ -1050,17 +1113,20 @@ const GAMMA = [
     const a = rnd(11, 29), b = rnd(2, 9); return NUM(`<b>${decTxt(a, 1)} · ${decTxt(b, 1)}</b> = ?`, a * b / 100, { steps:[`${a} · ${b} = ${a * b}.`, `Två decimaler: ${decTxt(a * b, 2)}.`], hint:'Räkna decimalerna i båda talen.' });
   } },
   { code:'G1.4', name:'Mer om multiplikation', gen(d){
-    if (d === 1){ const n = rnd(2, 99) * 10; return NUM(`<b>${fmt(n)} · 0,1</b> = ?`, n / 10, { steps:['Gånger 0,1 är samma som att dela med 10.', `${fmt(n)} / 10 = ${fmt(n / 10)}.`], hint:'· 0,1 = / 10.' }); }
-    if (d === 2){ const n = rnd(2, 99) * 100 + (Math.random() < .5 ? 0 : rnd(1, 9) * 10); return NUM(`<b>${fmt(n)} · 0,01</b> = ?`, n / 100, { steps:['Gånger 0,01 är samma som att dela med 100.', `${fmt(n)} / 100 = ${fmt(n / 100)}.`], hint:'· 0,01 = / 100.' }); }
-    if (d === 3){ const f = pick([.5, .25]), n = rnd(2, 30) * (f === .5 ? 2 : 4); return NUM(`<b>${n} · ${fmt(f)}</b> = ?`, n * f, { steps:[`${fmt(f)} = ${f === .5 ? 'en halv' : 'en fjärdedel'}.`, `${n} / ${f === .5 ? 2 : 4} = ${fmt(n * f)}.`], hint:`${fmt(f)} är ${f === .5 ? 'hälften' : 'en fjärdedel'}.` }); }
-    const n = pick([40, 60, 80]), opts = [[`${n} · 0,9`, n * .9], [`${n} · 1,2`, n * 1.2], [`${n} / 2`, n / 2], [`${n} · 0,5`, n * .5]];
-    return CHOICE(`Vilket uttryck har störst värde?`, `${n} · 1,2`, opts.filter(o => o[1] !== n * 1.2).map(o => o[0]), { steps:['Gånger ett tal större än 1 gör talet större.', 'Gånger ett tal mindre än 1 gör talet mindre.', `${n} · 1,2 = ${fmt(n * 1.2)} är störst.`], hint:'Vilket tal är större än 1?' });
+    if (d === 1){ const f = pick([10, 100, 1000]), z = String(f).length - 1, x = r6(rnd(101, 999) / Math.pow(10, rnd(1, 3))); return NUM(`<b>${fmt(x)} · ${fmt(f)}</b> = ?`, r6(x * f), { steps:[`Multiplikation med ${fmt(f)}: flytta kommat ${z} steg åt höger.`, `${fmt(x)} · ${fmt(f)} = ${fmt(r6(x * f))}.`], hint:`Flytta kommat ${z} steg åt höger.`, slow:1.1 }); }
+    const two = x => (x / 100).toFixed(2).replace('.', ',');
+    if (d === 2){ let a; do { a = rnd(101, 999); } while (a % 10 === 0); const n = rnd(3, 9); return NUM(`<b>${decTxt(a, 2)} · ${n}</b> = ?`, a * n / 100, { steps:[`Räkna utan komma med uppställning: ${a} · ${n} = ${fmt(a * n)}.`, `${decTxt(a, 2)} har två decimaler, så svaret ska också ha två: ${two(a * n)}.`], hint:'Ställ upp utan komma och sätt tillbaka lika många decimaler.' }); }
+    let a, b; do { a = rnd(12, d === 3 ? 49 : 99); b = rnd(12, d === 3 ? 39 : 49); } while (a % 10 === 0 || b % 10 === 0);
+    if (d === 3) return genLongMul(a, b);
+    if (Math.random() < .5) return genLongMul(rnd(5, 9) * 10 + rnd(1, 9), rnd(4, 9) * 10 + rnd(1, 9));
+    return NUM(`<b>${decTxt(a, 1)} · ${decTxt(b, 1)}</b> = ?`, a * b / 100, { steps:['Räkna utan komma.', ...mulSteps(a, b), `Båda talen har en decimal, så svaret ska ha två: ${two(a * b)}.`], hint:'Ställ upp utan komma. Räkna sedan decimalerna i båda talen.', slow:1.6 });
   } },
   { code:'G1.5', name:'Mer om division', gen(d){
-    if (d === 1){ const n = rnd(2, 99); return NUM(`<b>${n} / 0,1</b> = ?`, n * 10, { steps:['Hur många tiondelar får plats? Tio gånger fler.', `${n} / 0,1 = ${n} · 10 = ${n * 10}.`], hint:'/ 0,1 = · 10.' }); }
-    if (d === 2){ const n = rnd(2, 40); return NUM(`<b>${n} / 0,5</b> = ?`, n * 2, { steps:['Hur många halvor finns i talet? Dubbelt så många.', `${n} / 0,5 = ${n} · 2 = ${n * 2}.`], hint:'/ 0,5 = · 2.' }); }
-    if (d === 3){ const q = rnd(2, 9), dv = rnd(2, 9); return NUM(`<b>${decTxt(q * dv, 1)} / ${decTxt(dv, 1)}</b> = ?`, q, { steps:['Förläng båda talen med 10 så att nämnaren blir ett heltal.', `${q * dv} / ${dv} = ${q}.`], hint:'Flytta kommat lika mycket i båda talen.' }); }
-    const q = rnd(2, 9) * 10, dv = rnd(2, 9); return NUM(`<b>${decTxt(q * dv, 2)} / ${decTxt(dv, 2)}</b> = ?`, q, { steps:['Förläng båda talen med 100.', `${q * dv} / ${dv} = ${q}.`], hint:'Flytta kommat två steg i båda talen.' });
+    if (d === 1){ const dv = rnd(2, 9) * 10, q = rnd(11, 49), a = dv * q; return NUM(`<b>${fmt(a)} / ${dv}</b> = ?`, q, { steps:[`Förkorta med 10 – stryk en nolla i båda talen: ${fmt(a / 10)} / ${dv / 10}.`, ...shortDiv(a / 10, dv / 10).L, `Svaret är ${q}.`], hint:'Stryk en nolla i båda talen och räkna kort division.' }); }
+    const dv = d === 2 ? pick([2, 5]) : d === 3 ? 4 : pick([2, 4, 5, 8]);
+    let t; do { t = rnd(11, 99); } while (t % dv === 0 || (d === 3 && t % 2 === 0));
+    if (d < 4) return NUM(`<b>${t} / ${dv}</b> = ?`, t / dv, { steps:[...decDivSteps(t, dv), `Svaret är ${fmt(t / dv)}.`], hint:'Blir det något kvar? Sätt decimalkomma och fortsätt med nollor efter kommat.' });
+    return NUM(`<b>${fmt(t * 10)} / ${dv * 10}</b> = ?`, t / dv, { steps:[`Förkorta med 10 – stryk en nolla i båda talen: ${t} / ${dv}.`, ...decDivSteps(t, dv), `Svaret är ${fmt(t / dv)}.`], hint:'Stryk en nolla i båda talen. Blir det något kvar – fortsätt efter kommat.' });
   } },
   { code:'G1.6', name:'Multiplikation och division med stora tal', gen(d){
     const zc = x => { let z = 0; while (x % 10 === 0 && x){ x /= 10; z++; } return z; };
@@ -1088,6 +1154,7 @@ const GAMMA = [
     return FRAC(`<b>${a}/${n1} + ${b}/${n2}</b> = ?`, a * n2 + b * n1, N, { steps:[`Gemensam nämnare: ${N}.`, `${a}/${n1} = ${a * n2}/${N} och ${b}/${n2} = ${b * n1}/${N}.`, `${a * n2}/${N} + ${b * n1}/${N} = ${a * n2 + b * n1}/${N}.`], hint:`Förläng båda bråken så att nämnaren blir ${N}.` });
   } },
   { code:'G2.2', name:'Bråkform och blandad form', gen(d){
+    if (d === 4) return mixedAddSub(rnd(3, 9), Math.random() < .5);
     const den = rnd(2, d >= 3 ? 9 : 5), w = rnd(1, d >= 3 ? 8 : 3), num = rnd(1, den - 1), imp = w * den + num;
     if (d === 1 || d === 3) return MIXED(`Skriv <b>${imp}/${den}</b> i blandad form.`, w, num, den, { steps:[`Hur många hela? ${imp} / ${den} = ${w}, och ${num} blir kvar.`, `${imp}/${den} = ${w} ${num}/${den}.`], hint:`Hur många gånger får ${den} plats i ${imp}?` });
     return FRAC(`Skriv <b>${w} ${num}/${den}</b> i bråkform.`, imp, den, { steps:[`${w} hela = ${w * den}/${den}.`, `${w * den}/${den} + ${num}/${den} = ${imp}/${den}.`], hint:`Varje hel är ${den}/${den}.` });
@@ -1233,8 +1300,12 @@ const LEAGUE_DEFS = [
   { id:'SL', name:'Special League', book:'Gamma', grade:'åk 6', color:'#0f5e4f', accent:'#ffd84d',
     levels:[{ name:'Lätt', from:'G1.1', to:'G2.7' }, { name:'Medel', from:'G3.1', to:'G3.7' }, { name:'Svår', from:'G4.1', to:'G4.6' }] },
 ];
+// World Cup har ingen svårighetsnivå: varje avsnitt är en egen "nivå" som spelaren väljer själv.
+const WORLD_CUP = { id:'WC', name:'World Cup', grade:'åk 4–6', color:'#7a1030', accent:'#f5c542',
+  levels:CURRICULUM.map(s => ({ name:s.name, from:s.code, to:s.code })) };
+const CUP_DEFS = [...LEAGUE_DEFS, WORLD_CUP];
 function levelSections(leagueId, lvl){
-  const L = LEAGUE_DEFS.find(l => l.id === leagueId).levels[lvl];
+  const L = CUP_DEFS.find(l => l.id === leagueId).levels[lvl];
   const i0 = CURRICULUM.findIndex(s => s.code === L.from), i1 = CURRICULUM.findIndex(s => s.code === L.to);
   return CURRICULUM.slice(i0, i1 + 1);
 }
@@ -1246,4 +1317,4 @@ function makeProblem(code, d){
   return p;
 }
 
-if (typeof module !== 'undefined') module.exports = { CURRICULUM, SECTIONS, LEAGUE_DEFS, levelSections, makeProblem, checkAnswer, canonical, parseNum, fmt, solveSteps, digitsOf, fromDigits };
+if (typeof module !== 'undefined') module.exports = { CURRICULUM, SECTIONS, LEAGUE_DEFS, WORLD_CUP, levelSections, makeProblem, checkAnswer, canonical, parseNum, fmt, solveSteps, digitsOf, fromDigits };

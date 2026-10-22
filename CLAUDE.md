@@ -31,7 +31,8 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 | `samling.js` | Biblioteket (kort, motståndarlag, utrustning) och 30 troféer varav 5 hemliga. Laddas före spelets skript, så värden som behöver `CARDS` m.fl. måste räknas ut först vid anrop. |
 | `effekter.js` | Tillfälliga effekter från utrustnings- och väderkort (`M.fx`), väder på planen och deras animation. Laddas före spelets skript. |
 | `dagens.js` | Dagens träning (10 tal i de svagaste avsnitten, dagar i rad i `save.daily`), daglig logg i `save.days` (60 dagar) och veckorapporten under För vuxna. Laddas före spelets skript. |
-| `teams.js` | Lag per liga från svagast till starkast, `drawCup()`. Special League: alla lag i Allsvenskan och 32 världsklubbar, `SWE_TWO_CHANCE` |
+| `teams.js` | Lag per liga från svagast till starkast, `drawCup()`. Special League: alla lag i Allsvenskan och 32 världsklubbar, `SWE_TWO_CHANCE`. World Cup (`WC`): 31 landslag. |
+| `worldcup.js` | World Cup: ligakortet (`wcCardHTML`) och skärmen `wcpick` där barnet väljer avsnitt. Laddas före spelets skript. |
 | `api/vs.js` | Vercel Function (Node, CommonJS) för kompismatch, ett relä mot Upstash Redis REST |
 | `online-config.js` | `window.VS_API`. Tom betyder samma adress som spelet (Vercel). På Synology anges Vercel-adressen här. |
 | `LÄS-MIG.txt` | Installation på Synology och Vercel, för användaren |
@@ -41,7 +42,8 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 
 - **Globala tillstånd:**
   - `save`: localStorage-nyckeln `unitedMattecup.v2`. `save.lib` håller det spelaren har sett (`cards`, `teams` med lagnamn, `relics`) och `save.trophies` upplåsta troféer. `checkTrophies()` körs efter svar, match, cup och kortval. `save.settings.logo` är spelarens egen startsideslogga (data-URL, högst 256 px) och överlever Nollställ.
-  - Ligorna visas för barnet som årskurs (`grade`: åk 4, 5, 6 i `LEAGUE_DEFS`). Boknamnen (`book`) syns bara under För vuxna.
+  - Ligorna visas för barnet som årskurs (`grade`: åk 4, 5, 6 i `LEAGUE_DEFS`). Boknamnen (`book`) syns bara under För vuxna och i World Cups avsnittsval.
+  - **World Cup** (`WORLD_CUP` i `curriculum.js`) ligger utanför `LEAGUE_DEFS`, så träning, kompismatch, För vuxna och troféerna Svårast av alla/Trebeln rör den inte. `CUP_DEFS` = alla fyra. Varje avsnitt är en egen nivå: `R.level` är avsnittets plats i `CURRICULUM`, så `newRun('WC', i)` och `levelSections` fungerar som vanligt. Inga nivåer låses upp (`finishRun`).
   - `R`: pågående cup. Har `R.vs = true` i kompismatch.
   - `M`: pågående match. Har `M.vs = true` i kompismatch.
   - `P`: öppet mattetal.
@@ -53,6 +55,7 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
   - Effekter: `burst`, `ring`, `bolt` och superanfallet (`superStart`/`superKick`/`superImpact`).
 - **Straffar:** egen canvas `PV`, med funktionerna `penAim`, `penShootUs` och `penDive`.
 - **Mattetal:** `openProblem(o)` → `renderProblem()` → `submitProblem()` → `o.onDone({ correct, fast })`. `record()` sköter utspridd repetition med 5 lådor per avsnitt.
+- **Uppställning** (`kind:'column'`): multiplikation med tvåsiffrig faktor (G1.4) har `rows` med två delprodukter. `P.ans` har då summaraden på plats 0..W−1 och delraderna efter, `P.cells` anger skrivbara rutor i ordning, och bara summaraden rättas. `tests/long-mul.js` provar flödet.
 - **Kort:** rätt svar ger full effekt, fel svar halv. Snabbt rätt svar ger +2 och tre rätt i rad ger publikbonus. `applyCard` räknar effekten.
 - **Korttyper** (`kind`): `atk`, `def`, `skill`, samt `gear` (utrustning, blå) och `env` (väder, gröna) utan spelare.
   - `pierce`: kortets anfall går igenom motståndarens försvar. `fire` (Eldboll): nästa anfall gör det. `strike` (Åskväder): deras försvar blir 0.
@@ -93,7 +96,7 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 cd tests
 npm install
 npx playwright install chromium
-npm test             # mattetalen, alla avsnitt i UI, superanfall, flera mål per tur, mobil (Skjut-knappen syns), bibliotek och troféer, kompismatch med två spelare
+npm test             # mattetalen, alla avsnitt i UI, superanfall, flera mål per tur, mobil (Skjut-knappen syns), bibliotek och troféer, kompismatch med två spelare, World Cup (en hel cup, ca 2,5 min)
 npm run test:cup     # hela cuper i alla tre ligorna (tar några minuter)
 npm run sim:balance  # cupvinst per strategi och träffsäkerhet
 npm run sim:vs       # balans i kompismatch

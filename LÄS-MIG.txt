@@ -21,7 +21,10 @@ LIGOR OCH NIVÅER
 - Special League   = Matematik Gamma (Lätt G 1.1–2.7, Medel G 3.1–3.7, Svår G 4.1–4.6)
   Alla 16 lag i Allsvenskan + 32 klubbar från hela världen. Varje cup får ett svenskt
   lag (15 % chans för två). Ändra chansen med SWE_TWO_CHANCE i teams.js.
+- World Cup        = valfritt avsnitt i Alfa, Beta eller Gamma. 31 landslag och
+  ingen svårighetsnivå: barnet väljer ett avsnitt och hela cupen övar på det.
 Lätt är öppen i alla ligor. Vinn cupen på en nivå för att låsa upp nästa.
+World Cup är alltid öppen.
 
 FILERNA
 - index.html     själva spelet (match, kort, straffar, skärmar)
@@ -31,6 +34,7 @@ FILERNA
                  varje cup lottar ett lag ur varje sjättedel av listan.
 - samling.js     biblioteket (kort, motståndarlag, utrustning) och troféerna
 - effekter.js    utrustnings- och väderkortens tillfälliga bonusar och vädret på planen
+- worldcup.js    World Cup: ligakortet och skärmen där barnet väljer avsnitt
 - api/vs.js      servern för onlinematch (bara för Vercel, se ovan)
 - online-config.js  adressen till onlineservern (tom = samma adress som spelet)
 - I index.html överst: CARDS (Uniteds spelarkort) och LINEUP (Uniteds elva).
