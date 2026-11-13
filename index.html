@@ -847,6 +847,8 @@ details.rep summary{font:400 17px var(--font-display);color:var(--gold);cursor:p
 <script src="samling.js"></script>
 <script src="effekter.js"></script>
 <script src="dagens.js"></script>
+<script src="veckoplan.js"></script>
+<script src="veckans.js"></script>
 <script src="worldcup.js"></script>
 <script>
 'use strict';
@@ -2357,6 +2359,7 @@ const SCREENS = {
         <button class="btn big ${r ? 'red' : 'gold'}" data-act="leagues">${r ? 'Välj ny liga' : 'Välj liga'}</button>
         ${vsSession() ? `<button class="btn big gold" data-act="vsResume">Tillbaka till kompismatchen<small>Kod ${esc(vsSession().code)}${vsSession().opp ? ` mot ${esc(vsSession().opp.name)}` : ''}</small></button>` : ''}
         ${dailyButtonHTML()}
+        ${weeklyButtonHTML()}
         <button class="btn big" data-act="vs">Utmana en kompis<small>Onlinematch – var sin skärm</small></button>
         <div class="row"><button class="btn" data-act="library">Bibliotek</button><button class="btn" data-act="trophies">Troféer ${trophyCount()}/${TROPHIES.length}</button></div>
         <div class="row"><button class="btn" data-act="train">Träning</button><button class="btn" data-act="howto">Så spelar du</button><button class="btn" data-act="adults">För vuxna</button></div>
@@ -2522,6 +2525,7 @@ const SCREENS = {
   library(){ return libraryHTML(); },
   wcpick(){ return wcPickHTML(); },
   dailyDone(){ return dailyDoneHTML(); },
+  weeklyDone(){ return weeklyDoneHTML(); },
   trophies(){ return trophiesHTML(); },
   howto(){
     return `<section class="screen scroll"><div class="wrap">
@@ -2594,6 +2598,7 @@ const SCREENS = {
         <h2 class="h2">För vuxna</h2>
         <p>Uppgifterna följer avsnitten i Matematik Alfa, Beta och Gamma och MatematikXYZ:s filmer (A 1.1–A 6.4, B 1.1–B 6.4 och G 1.1–G 4.6). Varje kort som spelas kräver en uppgift från den valda nivån. Kortets märke (Brons till Stjärna) styr hur svår uppgiften blir inom avsnittet.</p>
         ${weekReportHTML()}
+        ${weeklyReportHTML()}
         <h3>Träningsrapport</h3>
         ${LEAGUE_DEFS.map(table).join('')}
         <p class="muted">Behärskning går upp ett steg för varje tal som klaras utan hjälp och ner två steg vid fel. Totalt ${save.stats.right} rätt av ${save.stats.total} tal.</p>
@@ -3139,7 +3144,7 @@ const ACT = {
   trainSec(d){ train.code = d.c; train.d = 1; train.streak = 0; trainNext(); },
   trainMix(d){ train.code = null; train.level = +d.v; train.d = 1; train.streak = 0; trainNext(); },
   howto(){ go('howto'); }, adults(){ go('adults'); },
-  library(){ go('library'); }, trophies(){ go('trophies'); }, daily(){ startDaily(); },
+  library(){ go('library'); }, trophies(){ go('trophies'); }, daily(){ startDaily(); }, weekly(){ startWeekly(); },
   libTab(d){ libView = d.k; render(); },
   example(d){ openProblem({ prob:{ ...EXAMPLES[d.ex], steps:[] }, example:true, eyebrow:'Exempel' }); },
   pickLogo(){ document.getElementById('logoFile').click(); },

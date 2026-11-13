@@ -31,6 +31,8 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 | `samling.js` | Biblioteket (kort, motståndarlag, utrustning) och 30 troféer varav 5 hemliga. Laddas före spelets skript, så värden som behöver `CARDS` m.fl. måste räknas ut först vid anrop. |
 | `effekter.js` | Tillfälliga effekter från utrustnings- och väderkort (`M.fx`), väder på planen och deras animation. Laddas före spelets skript. |
 | `dagens.js` | Dagens träning (10 tal i de svagaste avsnitten, dagar i rad i `save.daily`), daglig logg i `save.days` (60 dagar) och veckorapporten under För vuxna. Laddas före spelets skript. |
+| `veckoplan.js` | Veckans plan (`WEEK_PLAN`: `id`, `week`, `topic`, `sections`). Sätts med skillen `veckans-traning` i `.claude/skills/`. |
+| `veckans.js` | Veckans träning: 10 tal ur veckans avsnitt, Brons → Stjärna, antal pass i `save.weekly` per `id`. Laddas före spelets skript. |
 | `teams.js` | Lag per liga från svagast till starkast, `drawCup()`. Special League: alla lag i Allsvenskan och 32 världsklubbar, `SWE_TWO_CHANCE`. World Cup (`WC`): 31 landslag. |
 | `worldcup.js` | World Cup: ligakortet (`wcCardHTML`) och skärmen `wcpick` där barnet väljer avsnitt. Laddas före spelets skript. |
 | `api/vs.js` | Vercel Function (Node, CommonJS) för kompismatch, ett relä mot Upstash Redis REST |
@@ -96,7 +98,7 @@ Spelet är privat, för en familj. Det spelas främst på **iPad**, även på mo
 cd tests
 npm install
 npx playwright install chromium
-npm test             # mattetalen, alla avsnitt i UI, superanfall, flera mål per tur, mobil (Skjut-knappen syns), bibliotek och troféer, kompismatch med två spelare, World Cup (en hel cup, ca 2,5 min)
+npm test             # mattetalen, alla avsnitt i UI, superanfall, flera mål per tur, mobil (Skjut-knappen syns), bibliotek och troféer, kompismatch med två spelare, veckans träning, World Cup (en hel cup, ca 2,5 min)
 npm run test:cup     # hela cuper i alla tre ligorna (tar några minuter)
 npm run sim:balance  # cupvinst per strategi och träffsäkerhet
 npm run sim:vs       # balans i kompismatch
